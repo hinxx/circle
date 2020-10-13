@@ -24,7 +24,13 @@ all:
 	make -C addon/vc4/interface/sample/hello_triangle
 	make -C addon/vc4/interface/sample/hello_triangle2
 
+	make -C addon/imgui
+	make -C addon/imgui/sample
+
 clean:
+	make -C addon/imgui/sample clean
+	make -C addon/imgui clean
+
 	make -C addon/vc4/interface/sample/hello_triangle2 clean
 	make -C addon/vc4/interface/sample/hello_triangle clean
 	make -C addon/vc4/interface/sample/hello_tiger clean

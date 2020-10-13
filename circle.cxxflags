@@ -8,3 +8,4 @@
 -ffreestanding
 -std=c++14
 -Wno-aligned-new
+-Wno-strict-overflow

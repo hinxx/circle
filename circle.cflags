@@ -7,3 +7,4 @@
 -fsigned-char
 -ffreestanding
 -std=gnu99
+-Wno-strict-overflow
