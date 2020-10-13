@@ -1,0 +1,9 @@
+// CPPFLAGS = -fno-exceptions -fno-rtti -nostdinc++ -DAARCH=32 -mcpu=arm1176jzf-s -marm -mfpu=vfp -mfloat-abi=hard -Wall -fsigned-char -ffreestanding -D__circle__ -DRASPPI=1 -DSTDLIB_SUPPORT=1 -D__VCCOREVER__=0x04000000 -U__unix__ -U__linux__  -I ../include -I ../addon -I ../app/lib -I ../addon/vc4 -I ../addon/vc4/interface/khronos/include -O2 -g -std=c++14 -Wno-aligned-new
+-mcpu=arm1176jzf-s
+-marm
+-mfpu=vfp
+-mfloat-abi=hard
+-Wall
+-fsigned-char
+-ffreestanding
+-std=gnu99

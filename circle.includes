@@ -1,0 +1,10 @@
+addon
+addon/vc4
+addon/vc4/interface
+addon/vc4/interface/bcm_host
+addon/vc4/interface/khronos/include
+addon/vc4/interface/vmcs_host/include
+include
+lib
+.
+test
