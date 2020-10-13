@@ -104,6 +104,11 @@ TShutdownMode CKernel::Run (void)
 
 	_main ();
 
+    m_Logger.Write (FromKernel, LogNotice, "Rebooting..");
+    m_Scheduler.Sleep (4);
+
+    return ShutdownReboot;
+
 	while (1)
 	{
 		m_Scheduler.Yield ();
