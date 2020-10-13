@@ -4,6 +4,7 @@ Config.mk
 Doxyfile
 LICENSE
 Makefile
+Makefile.env
 NOTES.md
 README.md
 Rules.mk
@@ -1232,7 +1233,6 @@ sample/README
 sample/Rules.mk
 sample/makeall
 sample/makelatest
-test/Makefile
 tools/bootloader/BCM2711.h
 tools/bootloader/BCM2835.h
 tools/bootloader/BCM2836.h
