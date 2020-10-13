@@ -1,4 +1,4 @@
-// dear imgui: Platform Binding for SDL2
+// dear imgui: Platform Backend for SDL2
 // This needs to be used along with a Renderer (e.g. DirectX11, OpenGL3, Vulkan..)
 // (Info: SDL2 is a cross-platform general purpose library for handling windows, inputs, graphics context creation, etc.)
 // (Requires: SDL 2.0. Prefer SDL 2.0.4+ for full feature support.)
@@ -47,7 +47,6 @@
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 
-#if HK
 // SDL
 #include <SDL.h>
 #include <SDL_syswm.h>
@@ -65,25 +64,18 @@ static bool         g_MousePressed[3] = { false, false, false };
 static SDL_Cursor*  g_MouseCursors[ImGuiMouseCursor_COUNT] = {};
 static char*        g_ClipboardTextData = NULL;
 static bool         g_MouseCanUseGlobalState = true;
-#endif
 
 static const char* ImGui_ImplSDL2_GetClipboardText(void*)
 {
-#if HK
     if (g_ClipboardTextData)
         SDL_free(g_ClipboardTextData);
     g_ClipboardTextData = SDL_GetClipboardText();
     return g_ClipboardTextData;
-#endif
-
-    return NULL;
 }
 
 static void ImGui_ImplSDL2_SetClipboardText(void*, const char* text)
 {
-#if HK
     SDL_SetClipboardText(text);
-#endif
 }
 
 // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -93,7 +85,6 @@ static void ImGui_ImplSDL2_SetClipboardText(void*, const char* text)
 // If you have multiple SDL events and some of them are not meant to be used by dear imgui, you may need to filter events based on their windowID field.
 bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
 {
-#if HK
     ImGuiIO& io = ImGui::GetIO();
     switch (event->type)
     {
@@ -135,17 +126,13 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
         }
     }
     return false;
-#endif
-
-    return false;
 }
 
 static bool ImGui_ImplSDL2_Init(SDL_Window* window)
 {
-#if HK
     g_Window = window;
 
-    // Setup back-end capabilities flags
+    // Setup backend capabilities flags
     ImGuiIO& io = ImGui::GetIO();
     io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;       // We can honor GetMouseCursor() values (optional)
     io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;        // We can honor io.WantSetMousePos requests (optional, rarely used)
@@ -201,58 +188,39 @@ static bool ImGui_ImplSDL2_Init(SDL_Window* window)
 #else
     (void)window;
 #endif
-    return true;
-#endif
 
-    return false;
+    return true;
 }
 
 bool ImGui_ImplSDL2_InitForOpenGL(SDL_Window* window, void* sdl_gl_context)
 {
-#if HK
     (void)sdl_gl_context; // Viewport branch will need this.
     return ImGui_ImplSDL2_Init(window);
-#endif
-
-    return false;
 }
 
 bool ImGui_ImplSDL2_InitForVulkan(SDL_Window* window)
 {
-#if HK
 #if !SDL_HAS_VULKAN
     IM_ASSERT(0 && "Unsupported");
 #endif
     return ImGui_ImplSDL2_Init(window);
-#endif
-
-    return false;
 }
 
 bool ImGui_ImplSDL2_InitForD3D(SDL_Window* window)
 {
-#if HK
 #if !defined(_WIN32)
     IM_ASSERT(0 && "Unsupported");
 #endif
     return ImGui_ImplSDL2_Init(window);
-#endif
-
-    return false;
 }
 
 bool ImGui_ImplSDL2_InitForMetal(SDL_Window* window)
 {
-#if HK
     return ImGui_ImplSDL2_Init(window);
-#endif
-
-    return false;
 }
 
 void ImGui_ImplSDL2_Shutdown()
 {
-#if HK
     g_Window = NULL;
 
     // Destroy last known clipboard data
@@ -264,12 +232,10 @@ void ImGui_ImplSDL2_Shutdown()
     for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
         SDL_FreeCursor(g_MouseCursors[cursor_n]);
     memset(g_MouseCursors, 0, sizeof(g_MouseCursors));
-#endif
 }
 
 static void ImGui_ImplSDL2_UpdateMousePosAndButtons()
 {
-#if HK
     ImGuiIO& io = ImGui::GetIO();
 
     // Set OS mouse position if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
@@ -285,7 +251,7 @@ static void ImGui_ImplSDL2_UpdateMousePosAndButtons()
     io.MouseDown[2] = g_MousePressed[2] || (mouse_buttons & SDL_BUTTON(SDL_BUTTON_MIDDLE)) != 0;
     g_MousePressed[0] = g_MousePressed[1] = g_MousePressed[2] = false;
 
-#if SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE && !defined(__EMSCRIPTEN__) && !defined(__ANDROID__) && !(defined(__APPLE__) && TARGET_OS_IOS) && !defined(RPI)
+#if SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE && !defined(__EMSCRIPTEN__) && !defined(__ANDROID__) && !(defined(__APPLE__) && TARGET_OS_IOS)
     SDL_Window* focused_window = SDL_GetKeyboardFocus();
     if (g_Window == focused_window)
     {
@@ -311,12 +277,10 @@ static void ImGui_ImplSDL2_UpdateMousePosAndButtons()
     if (SDL_GetWindowFlags(g_Window) & SDL_WINDOW_INPUT_FOCUS)
         io.MousePos = ImVec2((float)mx, (float)my);
 #endif
-#endif
 }
 
 static void ImGui_ImplSDL2_UpdateMouseCursor()
 {
-#if HK
     ImGuiIO& io = ImGui::GetIO();
     if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
         return;
@@ -333,12 +297,10 @@ static void ImGui_ImplSDL2_UpdateMouseCursor()
         SDL_SetCursor(g_MouseCursors[imgui_cursor] ? g_MouseCursors[imgui_cursor] : g_MouseCursors[ImGuiMouseCursor_Arrow]);
         SDL_ShowCursor(SDL_TRUE);
     }
-#endif
 }
 
 static void ImGui_ImplSDL2_UpdateGamepads()
 {
-#if HK
     ImGuiIO& io = ImGui::GetIO();
     memset(io.NavInputs, 0, sizeof(io.NavInputs));
     if ((io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad) == 0)
@@ -376,14 +338,12 @@ static void ImGui_ImplSDL2_UpdateGamepads()
     io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
     #undef MAP_BUTTON
     #undef MAP_ANALOG
-#endif
 }
 
 void ImGui_ImplSDL2_NewFrame(SDL_Window* window)
 {
-#if HK
     ImGuiIO& io = ImGui::GetIO();
-    IM_ASSERT(io.Fonts->IsBuilt() && "Font atlas not built! It is generally built by the renderer back-end. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame().");
+    IM_ASSERT(io.Fonts->IsBuilt() && "Font atlas not built! It is generally built by the renderer backend. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame().");
 
     // Setup display size (every frame to accommodate for window resizing)
     int w, h;
@@ -407,5 +367,4 @@ void ImGui_ImplSDL2_NewFrame(SDL_Window* window)
 
     // Update game controllers (if enabled and available)
     ImGui_ImplSDL2_UpdateGamepads();
-#endif
 }

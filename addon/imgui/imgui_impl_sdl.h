@@ -1,4 +1,4 @@
-// dear imgui: Platform Binding for SDL2
+// dear imgui: Platform Backend for SDL2
 // This needs to be used along with a Renderer (e.g. DirectX11, OpenGL3, Vulkan..)
 // (Info: SDL2 is a cross-platform general purpose library for handling windows, inputs, graphics context creation, etc.)
 
@@ -19,31 +19,6 @@
 
 struct SDL_Window;
 typedef union SDL_Event SDL_Event;
-
-// HK
-struct SDL_Window
-{
-};
-
-typedef struct SDL_WindowEvent
-{
-    unsigned int type;        /**< ::SDL_WINDOWEVENT */
-    unsigned int timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
-    unsigned int windowID;    /**< The associated window */
-    unsigned char event;        /**< ::SDL_WindowEventID */
-    unsigned char padding1;
-    unsigned char padding2;
-    unsigned char padding3;
-    int data1;       /**< event dependent data */
-    int data2;       /**< event dependent data */
-} SDL_WindowEvent;
-
-typedef union SDL_Event
-{
-    unsigned int type;                    /**< Event type, shared with all events */
-    SDL_WindowEvent window;         /**< Window event data */
-} SDL_Event;
-// HK
 
 IMGUI_IMPL_API bool     ImGui_ImplSDL2_InitForOpenGL(SDL_Window* window, void* sdl_gl_context);
 IMGUI_IMPL_API bool     ImGui_ImplSDL2_InitForVulkan(SDL_Window* window);
