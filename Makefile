@@ -45,10 +45,10 @@ clean:
 	make -C addon/linux clean
 
 	make -C sample/01-gpiosimple clean
-	make -C net clean
-	make -C sched clean
-	make -C fs/fat clean
-	make -C fs clean
-	make -C input clean
-	make -C usb clean
+	make -C lib/net clean
+	make -C lib/sched clean
+	make -C lib/fs/fat clean
+	make -C lib/fs clean
+	make -C lib/input clean
+	make -C lib/usb clean
 	make -C lib clean
