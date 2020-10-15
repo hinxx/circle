@@ -32,6 +32,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <linux/kernel.h>
 #include <linux/delay.h>
 #include <linux/spinlock.h>
+#include <linux/mutex.h>
+#include <linux/completion.h>
 #include <circle/sched/scheduler.h>
 #include <assert.h>
 #else
@@ -81,6 +83,9 @@ typedef struct
 } CUBE_STATE_T;
 
 static CUBE_STATE_T _state, *state=&_state;
+
+static struct mutex vsync_cond_mutex;
+static struct completion vsync_cond;
 
 #define check() assert(glGetError() == 0)
 
@@ -136,6 +141,21 @@ void printConfigInfo(int n, EGLDisplay display, EGLConfig *config) {
    printk("[%02d] R %d G %d B %d A %d S %d %s %s\n",
           n, red, green, blue, alpha, size,
           (rgb == EGL_TRUE)?"Y":"N", (rgba == EGL_TRUE)?"Y":"N");
+}
+
+
+static void vsync_callback(DISPMANX_UPDATE_HANDLE_T u, void *data) {
+//   SDL_WindowData *wdata = ((SDL_WindowData *) data);
+//   SDL_LockMutex(wdata->vsync_cond_mutex);
+//   SDL_CondSignal(wdata->vsync_cond);
+//   SDL_UnlockMutex(wdata->vsync_cond_mutex);
+
+    (void)u;
+    (void)data;
+//    printk("vsync callback called..\n");
+    mutex_lock(&vsync_cond_mutex);
+    complete(&vsync_cond);
+    mutex_unlock(&vsync_cond_mutex);
 }
 
 /***********************************************************
@@ -272,8 +292,17 @@ static void init_ogl(CUBE_STATE_T *state)
    // Set background color and clear buffers
    glClearColor(0.15f, 0.25f, 0.35f, 1.0f);
    glClear( GL_COLOR_BUFFER_BIT );
-
    check();
+
+   // start generating vsync callbacks
+   init_completion(&vsync_cond);
+   mutex_init(&vsync_cond_mutex);
+   vc_dispmanx_vsync_callback(state->dispman_display, vsync_callback, NULL/*(void*)wdata*/);
+
+    // enable vsync
+    result = eglSwapInterval(state->display, 1);
+    assert(EGL_FALSE != result);
+    check();
 }
 
 
@@ -620,6 +649,11 @@ static void exit_func(void)
    glClear( GL_COLOR_BUFFER_BIT );
    eglSwapBuffers(state->display, state->surface);
 
+   mutex_lock(&vsync_cond_mutex);
+   wait_for_completion(&vsync_cond);
+   mutex_unlock(&vsync_cond_mutex);
+   vc_dispmanx_vsync_callback(state->dispman_display, NULL, NULL);
+
    eglDestroySurface( state->display, state->surface );
 
    dispman_update = vc_dispmanx_update_start( 0 );
@@ -776,6 +810,7 @@ int _main ()
            counter++;
        ImGui::SameLine();
        ImGui::Text("counter = %d", counter);
+       ImGui::Text("iter = %d", iter);
 
        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
        ImGui::End();
@@ -797,6 +832,14 @@ int _main ()
    glClear(GL_COLOR_BUFFER_BIT);
    // Clear the background (not really necessary I suppose)
    //glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+   // debug
+   ImDrawData *drawData = ImGui::GetDrawData();
+   if (drawData->CmdListsCount == 0) {
+       printk("iter %d, drawData->CmdListsCount == 0!\n", iter);
+   }
+   // debug
+
    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
    //printk("after ImGui_ImplOpenGL3_RenderDrawData\n");
 
@@ -807,8 +850,16 @@ int _main ()
    eglSwapBuffers(state->display, state->surface);
    //check();
 
+#if 0
    CScheduler *sched = CScheduler::Get();
    sched->usSleep(16);
+#else
+   // wait for vsync
+   mutex_lock(&vsync_cond_mutex);
+   wait_for_completion(&vsync_cond);
+   mutex_unlock(&vsync_cond_mutex);
+#endif
+
    }
 
    // Cleanup
