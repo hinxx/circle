@@ -95,7 +95,9 @@ TShutdownMode CKernel::Run (void)
 	CMouseDevice *pMouse = (CMouseDevice *) m_DeviceNameService.GetDevice ("mouse1", FALSE);
 	if (pMouse != 0)
 	{
-		pMouse->RegisterStatusHandler (mouse_callback);
+        // all mouse stuff is in main.cpp!
+        // status handler must be NULL for CMouseDevice::UpdateCursor() to work
+		//pMouse->RegisterStatusHandler (mouse_callback);
 	}
 	else
 	{

@@ -35,6 +35,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <linux/mutex.h>
 #include <linux/completion.h>
 #include <circle/sched/scheduler.h>
+#include <circle/input/mousebehaviour.h>
+#include <circle/input/mouse.h>
+#include <circle/devicenameservice.h>
 #include <assert.h>
 #else
 #include <stdio.h>
@@ -556,6 +559,9 @@ static void draw_triangles(CUBE_STATE_T *state, GLfloat cx, GLfloat cy, GLfloat 
 
 static DEFINE_SPINLOCK (mouse_lock);
 static int mouse_buttons = 0, mouse_dx = 0, mouse_dy = 0;
+static unsigned mouse_x = 0;
+static unsigned mouse_y = 0;
+static bool g_MousePressed[3] = { false, false, false };
 
 void mouse_callback (unsigned buttons, int dx, int dy)
 {
@@ -566,6 +572,34 @@ void mouse_callback (unsigned buttons, int dx, int dy)
    mouse_dy += dy;
 
    spin_unlock (&mouse_lock);
+}
+
+void mouse_event_callback(TMouseEvent Event, unsigned nButtons, unsigned nPosX, unsigned nPosY)
+{
+//    printk("mouse %4d %4d buttons %d\n", nPosX, nPosY, nButtons);
+
+    spin_lock (&mouse_lock);
+    switch (Event)
+	{
+	case MouseEventMouseMove:
+        // handle mouse button press here to allow for click and drag!
+        g_MousePressed[0] = nButtons & MOUSE_BUTTON_LEFT;
+        g_MousePressed[1] = nButtons & MOUSE_BUTTON_RIGHT;
+        g_MousePressed[2] = nButtons & MOUSE_BUTTON_MIDDLE;
+		mouse_x = nPosX;
+		mouse_y = nPosY;
+		break;
+
+	case MouseEventMouseDown:
+        g_MousePressed[0] = nButtons & MOUSE_BUTTON_LEFT;
+        g_MousePressed[1] = nButtons & MOUSE_BUTTON_RIGHT;
+        g_MousePressed[2] = nButtons & MOUSE_BUTTON_MIDDLE;
+        break;
+
+	default:
+		break;
+	}
+    spin_unlock (&mouse_lock);
 }
 
 static int get_mouse(CUBE_STATE_T *state, int *outx, int *outy)
@@ -719,6 +753,15 @@ int _main ()
    printk("Screen %d x %d\n", state->screen_width, state->screen_height);
 
 
+   CMouseDevice *pMouse = (CMouseDevice *) CDeviceNameService::Get()->GetDevice("mouse1", FALSE);
+   if (! pMouse->Setup(state->screen_width, state->screen_height)) {
+       printk("Cannot setup mouse\n");
+   }
+   pMouse->SetCursor(state->screen_width/2, state->screen_height/2);
+   // XXX: consider using ImGui cursor instead of native one!
+   pMouse->ShowCursor(TRUE);
+   pMouse->RegisterEventHandler(mouse_event_callback);
+
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();
    ImGui::CreateContext();
@@ -755,12 +798,29 @@ int _main ()
 //      draw_triangles(state, cx, cy, 0.003, x, y);
 //   }
 
-   int iter = 1000;
+   int iter = 10000;
    while(iter--) {
+
+       // update mouse position and button states
+       unsigned x, y;
+       spin_lock(&mouse_lock);
+       x = mouse_x;
+       y = mouse_y;
+       io.MouseDown[0] = g_MousePressed[0];
+       io.MouseDown[1] = g_MousePressed[1];
+       io.MouseDown[2] = g_MousePressed[2];
+       io.MousePos = ImVec2((float)x, (float)y);
+
+       spin_unlock(&mouse_lock);
+
    // Start the Dear ImGui frame
    ImGui_ImplOpenGL3_NewFrame();
    //printk("after ImGui_ImplOpenGL3_NewFrame\n");
 //   ImGui_ImplSDL2_NewFrame(window);
+
+   pMouse->UpdateCursor();
+   // mandatory! reset the mouse button states to get button up in the next frame!
+   g_MousePressed[0] = g_MousePressed[1] = g_MousePressed[2] = false;
 
    IM_ASSERT(io.Fonts->IsBuilt() && "Font atlas not built! It is generally built by the renderer backend. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame().");
 
@@ -811,6 +871,8 @@ int _main ()
        ImGui::SameLine();
        ImGui::Text("counter = %d", counter);
        ImGui::Text("iter = %d", iter);
+       ImGui::Text("mouse X %4d Y %4d", (int)io.MousePos.x, (int)io.MousePos.y);
+       ImGui::Text("mouse buttons = LEFT %d RIGHT %d MIDDLE %d", io.MouseDown[0], io.MouseDown[1], io.MouseDown[2]);
 
        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
        ImGui::End();
