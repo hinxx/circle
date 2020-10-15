@@ -242,9 +242,16 @@ static void init_ogl(CUBE_STATE_T *state)
    state->dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
    dispman_update = vc_dispmanx_update_start( 0 );
 
+   // from SDL_rpivideo.c
+   VC_DISPMANX_ALPHA_T dispman_alpha;
+   /* Disable alpha, otherwise the app looks composed with whatever dispman is showing (X11, console,etc) */
+   dispman_alpha.flags = DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS;
+   dispman_alpha.opacity = 0xFF;
+   dispman_alpha.mask = 0;
+
    state->dispman_element = vc_dispmanx_element_add ( dispman_update, state->dispman_display,
       0/*layer*/, &dst_rect, 0/*src*/,
-      &src_rect, DISPMANX_PROTECTION_NONE, 0 /*alpha*/, 0/*clamp*/, DISPMANX_NO_ROTATE/*transform*/);
+      &src_rect, DISPMANX_PROTECTION_NONE, &dispman_alpha /*alpha*/, 0/*clamp*/, DISPMANX_NO_ROTATE/*transform*/);
 
    nativewindow.element = state->dispman_element;
    nativewindow.width = state->screen_width;
