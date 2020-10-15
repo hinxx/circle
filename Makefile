@@ -8,7 +8,8 @@ all:
 	make -C lib/fs/fat
 	make -C lib/sched
 	make -C lib/net
-	make -C sample/01-gpiosimple
+	make -C addon/fatfs
+#	make -C sample/01-gpiosimple
 	make -C addon/linux
 	
 	make -C addon/vc4/vchiq
@@ -19,10 +20,10 @@ all:
 	make -C addon/vc4/interface/vmcs_host
 	make -C addon/vc4/interface/khronos
 	make -C addon/vc4/interface/bcm_host
-	make -C addon/vc4/interface/sample/hello_dispmanx
-	make -C addon/vc4/interface/sample/hello_tiger
-	make -C addon/vc4/interface/sample/hello_triangle
-	make -C addon/vc4/interface/sample/hello_triangle2
+	#make -C addon/vc4/interface/sample/hello_dispmanx
+	#make -C addon/vc4/interface/sample/hello_tiger
+	#make -C addon/vc4/interface/sample/hello_triangle
+	#make -C addon/vc4/interface/sample/hello_triangle2
 
 	make -C addon/imgui
 	make -C addon/imgui/sample

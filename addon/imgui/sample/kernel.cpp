@@ -19,8 +19,10 @@
 //
 #include "kernel.h"
 
-extern "C" int _main (void);
-extern "C" void mouse_callback (unsigned nButtons, int nDisplacementX, int nDisplacementY);
+#include "imgui_demo.h"
+
+//extern "C" int _main (void);
+//extern "C" void mouse_callback (unsigned nButtons, int nDisplacementX, int nDisplacementY);
 
 static const char FromKernel[] = "kernel";
 
@@ -105,7 +107,7 @@ TShutdownMode CKernel::Run (void)
 	_main ();
 
     m_Logger.Write (FromKernel, LogNotice, "Rebooting..");
-    m_Scheduler.Sleep (4);
+    m_Scheduler.Sleep (15);
 
     return ShutdownReboot;
 

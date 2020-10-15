@@ -1,3 +1,59 @@
+https://github.com/smuehlst/circle-stdlib needs to be built for compiling imgui code (sscanf, atof, ..). This may be relaxed in the future,
+or at least allow using only small subset of the stdlib (newlib) from circle-stdlib.
+
+Config:
+
+hinxx@obzen ~/Projects/baremetal-rpi/circle-stdlib $ cat Config.mk 
+CC = /home/hinxx/Projects/baremetal-rpi/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc
+ARCH = -DAARCH=32 -mcpu=arm1176jzf-s -marm -mfpu=vfp -mfloat-abi=hard
+TOOLPREFIX = /home/hinxx/Projects/baremetal-rpi/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-
+NEWLIB_BUILD_DIR = /home/hinxx/Projects/baremetal-rpi/circle-stdlib/build/circle-newlib
+NEWLIB_INSTALL_DIR = /home/hinxx/Projects/baremetal-rpi/circle-stdlib/install
+CFLAGS_FOR_TARGET = -DAARCH=32 -mcpu=arm1176jzf-s -marm -mfpu=vfp -mfloat-abi=hard -Wno-parentheses
+CPPFLAGS_FOR_TARGET = -I"/home/hinxx/Projects/baremetal-rpi/circle-stdlib/libs/circle/include" -I"/home/hinxx/Projects/baremetal-rpi/circle-stdlib/libs/circle/addon" -I"/home/hinxx/Projects/baremetal-rpi/circle-stdlib/include"
+CC_FOR_TARGET = /home/hinxx/Projects/baremetal-rpi/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc
+CXX_FOR_TARGET = /home/hinxx/Projects/baremetal-rpi/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-g++
+GCC_FOR_TARGET = /home/hinxx/Projects/baremetal-rpi/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc
+AR_FOR_TARGET = /home/hinxx/Projects/baremetal-rpi/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc-ar
+AS_FOR_TARGET = /home/hinxx/Projects/baremetal-rpi/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc-as
+LD_FOR_TARGET = /home/hinxx/Projects/baremetal-rpi/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc-ld
+RANLIB_FOR_TARGET = /home/hinxx/Projects/baremetal-rpi/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc-ranlib
+OBJCOPY_FOR_TARGET = /home/hinxx/Projects/baremetal-rpi/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc-objcopy
+OBJDUMP_FOR_TARGET = /home/hinxx/Projects/baremetal-rpi/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc-objdump
+NEWLIB_ARCH = arm-none-circle
+
+hinxx@obzen ~/Projects/baremetal-rpi/circle-stdlib $ cat libs/circle/Config.mk 
+RASPPI = 1
+PREFIX = /home/hinxx/Projects/baremetal-rpi/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-
+FLOAT_ABI = hard
+STDLIB_SUPPORT = 3
+STDDEF_INCPATH = "/home/hinxx/Projects/baremetal-rpi/gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/../lib/gcc/arm-none-eabi/9.2.1/include"
+CFLAGS = -Wno-parentheses 
+SERIALPORT = /dev/ttyUSB0
+FLASHBAUD = 921600
+USERBAUD = 115200
+
+build!
+
+hinxx@obzen ~/Projects/baremetal-rpi/circle-stdlib $ ll install/
+total 16
+drwxrwxr-x  3 hinxx hinxx 4096 Oct 13 22:30 ./
+drwxrwxr-x 10 hinxx hinxx 4096 Oct 13 22:37 ../
+drwxrwxr-x  4 hinxx hinxx 4096 Oct 13 22:30 arm-none-circle/
+-rw-rw-r--  1 hinxx hinxx   40 Oct 13 21:04 .gitignore
+hinxx@obzen ~/Projects/baremetal-rpi/circle-stdlib $ ll include/
+total 32
+drwxrwxr-x  3 hinxx hinxx 4096 Oct 13 21:04 ./
+drwxrwxr-x 10 hinxx hinxx 4096 Oct 13 22:37 ../
+-rw-rw-r--  1 hinxx hinxx  565 Oct 13 21:04 circle_glue.h
+drwxrwxr-x  2 hinxx hinxx 4096 Oct 13 21:04 circle-mbedtls/
+-rw-rw-r--  1 hinxx hinxx 8548 Oct 13 21:04 circle_stdlib_app.h
+-rw-rw-r--  1 hinxx hinxx  295 Oct 13 21:04 wrap_fatfs.h
+
+copy the ./install to circle/stdlib, copy ./include to circle/include
+adjust makefiles to use sdlibs (see circle-stdlib/samples for that.
+
+
 $ ./gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc -v -x c -E - 2>&1 
 Using built-in specs.
 COLLECT_GCC=./gcc-arm-9.2-2019.12-x86_64-arm-none-eabi/bin/arm-none-eabi-gcc

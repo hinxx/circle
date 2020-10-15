@@ -113,6 +113,8 @@ addon/imgui/imstb_textedit.h
 addon/imgui/imstb_truetype.h
 addon/imgui/sample/0Makefile
 addon/imgui/sample/Makefile
+addon/imgui/sample/imgui_demo.cpp
+addon/imgui/sample/imgui_demo.h
 addon/imgui/sample/kernel.cpp
 addon/imgui/sample/kernel.h
 addon/imgui/sample/main.cpp
