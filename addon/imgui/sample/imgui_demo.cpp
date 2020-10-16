@@ -223,12 +223,12 @@ static void init_ogl(CUBE_STATE_T *state)
    configs = (EGLConfig *)calloc(num_configs, sizeof *configs);
    eglGetConfigs(state->display, configs, num_configs, &num_configs);
 
-   CScheduler *sched = CScheduler::Get();
-   int i;
-   for (i = 0; i < num_configs; i++) {
-        printConfigInfo(i, state->display, &configs[i]);
-   }
-   sched->Sleep(5);
+   //CScheduler *sched = CScheduler::Get();
+   //int i;
+   //for (i = 0; i < num_configs; i++) {
+   //     printConfigInfo(i, state->display, &configs[i]);
+   //}
+   //sched->Sleep(5);
 
    // get an appropriate EGL frame buffer configuration
    result = eglChooseConfig(state->display, attribute_list, &config, 1, &num_config);
@@ -236,7 +236,7 @@ static void init_ogl(CUBE_STATE_T *state)
    check();
    printk("\nselected config:\n");
    printConfigInfo(1, state->display, &config);
-   sched->Sleep(5);
+   //sched->Sleep(5);
 
    // get an appropriate EGL frame buffer configuration
    result = eglBindAPI(EGL_OPENGL_ES_API);
