@@ -20,9 +20,12 @@
 #include <circle/usb/usbmouse.h>
 #include <circle/usb/usbhid.h>
 #include <circle/logger.h>
+#include <circle/debug.h>
 #include <assert.h>
 
-#define REPORT_SIZE	3
+// in boot protocol 3 bytes are received, in report protocol 5 bytes are received
+//#define REPORT_SIZE 3
+#define REPORT_SIZE 5
 
 static const char FromUSBMouse[] = "umouse";
 
@@ -52,6 +55,8 @@ boolean CUSBMouseDevice::Configure (void)
 
 		return FALSE;
 	}
+    //CLogger::Get ()->Write (FromUSBMouse, LogDebug, "HID descriptor");
+	//debug_hexdump (pHIDDesc, sizeof *pHIDDesc, FromUSBMouse);
 
 	m_usReportDescriptorLength = pHIDDesc->wReportDescriptorLength;
 	m_pHIDReportDescriptor = new u8[m_usReportDescriptorLength];
@@ -67,6 +72,8 @@ boolean CUSBMouseDevice::Configure (void)
 
 		return FALSE;
 	}
+    //CLogger::Get ()->Write (FromUSBMouse, LogDebug, "Report descriptor");
+    //debug_hexdump (m_pHIDReportDescriptor, m_usReportDescriptorLength, FromUSBMouse);
 
 	if (!CUSBHIDDevice::Configure ())
 	{
@@ -83,10 +90,25 @@ boolean CUSBMouseDevice::Configure (void)
 
 void CUSBMouseDevice::ReportHandler (const u8 *pReport, unsigned nReportSize)
 {
-	if (   pReport != 0
+    //debug_hexdump (pReport, nReportSize, FromUSBMouse);
+
+    if (   pReport != 0
 	    && nReportSize == REPORT_SIZE)
 	{
-		u8 ucHIDButtons = pReport[0];
+        //CLogger::Get ()->Write (FromUSBMouse, LogDebug, "%02X %3d %3d %3d %3d %3d %3d",
+        //                        pReport[0], pReport[1], pReport[2], pReport[3], pReport[4], pReport[5], pReport[6]);
+
+        // in boot protocol the 3 bytes are:
+        // 0   1 - left button, 2 - right button, 4 - middle button
+        // 1   X displacement (+/- 127 max)
+        // 2   Y displacement (+/- 127 max)
+        // in report protocol the 5 bytes are:
+        // 0   0x01 constant?
+        // 1   1 - left button, 2 - right button, 4 - middle button
+        // 2   X displacement (+/- 127 max)
+        // 3   Y displacement (+/- 127 max)
+        // 4   1 - wheel up, -1 wheel down
+		u8 ucHIDButtons = pReport[1];
 
 		unsigned nButtons = 0;
 		if (ucHIDButtons & USBHID_BUTTON1)
@@ -104,8 +126,8 @@ void CUSBMouseDevice::ReportHandler (const u8 *pReport, unsigned nReportSize)
 
 		if (m_pMouseDevice != 0)
 		{
-			m_pMouseDevice->ReportHandler (nButtons, (char) pReport[1],
-						       (char) pReport[2]);
+			m_pMouseDevice->ReportHandler (nButtons, (char) pReport[2],
+						       (char) pReport[3], (char) pReport[4]);
 		}
 	}
 }

@@ -562,6 +562,7 @@ static int mouse_buttons = 0, mouse_dx = 0, mouse_dy = 0;
 static unsigned mouse_x = 0;
 static unsigned mouse_y = 0;
 static bool g_MousePressed[3] = { false, false, false };
+static int mouse_wheel = 0;
 
 void mouse_callback (unsigned buttons, int dx, int dy)
 {
@@ -574,7 +575,7 @@ void mouse_callback (unsigned buttons, int dx, int dy)
    spin_unlock (&mouse_lock);
 }
 
-void mouse_event_callback(TMouseEvent Event, unsigned nButtons, unsigned nPosX, unsigned nPosY)
+void mouse_event_callback(TMouseEvent Event, unsigned nButtons, unsigned nPosX, unsigned nPosY, int nWheelMove)
 {
 //    printk("mouse %4d %4d buttons %d\n", nPosX, nPosY, nButtons);
 
@@ -590,10 +591,15 @@ void mouse_event_callback(TMouseEvent Event, unsigned nButtons, unsigned nPosX, 
 		mouse_y = nPosY;
 		break;
 
-	case MouseEventMouseDown:
+    case MouseEventMouseDown:
         g_MousePressed[0] = nButtons & MOUSE_BUTTON_LEFT;
         g_MousePressed[1] = nButtons & MOUSE_BUTTON_RIGHT;
         g_MousePressed[2] = nButtons & MOUSE_BUTTON_MIDDLE;
+        break;
+
+    case MouseEventMouseWheel:
+        if (nWheelMove > 0) mouse_wheel = 1;
+        if (nWheelMove < 0) mouse_wheel = -1;
         break;
 
 	default:
@@ -809,6 +815,7 @@ int _main ()
        io.MouseDown[0] = g_MousePressed[0];
        io.MouseDown[1] = g_MousePressed[1];
        io.MouseDown[2] = g_MousePressed[2];
+       io.MouseWheel += mouse_wheel;
        io.MousePos = ImVec2((float)x, (float)y);
 
        spin_unlock(&mouse_lock);
@@ -821,6 +828,7 @@ int _main ()
    pMouse->UpdateCursor();
    // mandatory! reset the mouse button states to get button up in the next frame!
    g_MousePressed[0] = g_MousePressed[1] = g_MousePressed[2] = false;
+    mouse_wheel = 0;
 
    IM_ASSERT(io.Fonts->IsBuilt() && "Font atlas not built! It is generally built by the renderer backend. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame().");
 

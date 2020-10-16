@@ -233,6 +233,7 @@ boolean CUSBDevice::Initialize (void)
 	}
 
 #ifndef NDEBUG
+    //LogWrite (LogError, "Device descriptor:");
 	//debug_hexdump (m_pDeviceDesc, sizeof *m_pDeviceDesc, FromDevice);
 #endif
 
@@ -316,6 +317,7 @@ boolean CUSBDevice::Initialize (void)
 	}
 
 #ifndef NDEBUG
+    //LogWrite (LogError, "Configuration descriptor:");
 	//debug_hexdump (m_pConfigDesc, nTotalLength, FromDevice);
 #endif
 
@@ -353,6 +355,9 @@ boolean CUSBDevice::Initialize (void)
 	TUSBInterfaceDescriptor *pInterfaceDesc;
 	while ((pInterfaceDesc = (TUSBInterfaceDescriptor *) m_pConfigParser->GetDescriptor (DESCRIPTOR_INTERFACE)) != 0)
 	{
+        //LogWrite (LogError, "Interface descriptor:");
+        //debug_hexdump (pInterfaceDesc, sizeof *pInterfaceDesc, FromDevice);
+
 		if (pInterfaceDesc->bInterfaceNumber > ucInterfaceNumber)
 		{
 			ucInterfaceNumber = pInterfaceDesc->bInterfaceNumber;

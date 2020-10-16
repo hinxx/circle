@@ -21,6 +21,7 @@
 #include <circle/usb/usbhid.h>
 #include <circle/logger.h>
 #include <circle/util.h>
+#include <circle/debug.h>
 #include <assert.h>
 
 static const char FromUSBHID[] = "usbhid";
@@ -64,6 +65,9 @@ boolean CUSBHIDDevice::Configure (unsigned nMaxReportSize)
 	const TUSBEndpointDescriptor *pEndpointDesc;
 	while ((pEndpointDesc = (TUSBEndpointDescriptor *) GetDescriptor (DESCRIPTOR_ENDPOINT)) != 0)
 	{
+        //CLogger::Get ()->Write (FromUSBHID, LogDebug, "Endpoint descriptor");
+        //debug_hexdump (pEndpointDesc, sizeof *pEndpointDesc, FromUSBHID);
+
 		if ((pEndpointDesc->bmAttributes & 0x3F) == 0x03)		// Interrupt EP
 		{
 			if ((pEndpointDesc->bEndpointAddress & 0x80) == 0x80)	// Input EP
@@ -108,9 +112,10 @@ boolean CUSBHIDDevice::Configure (unsigned nMaxReportSize)
 	if (   GetInterfaceClass ()    == 3	// HID class
 	    && GetInterfaceSubClass () == 1)	// boot class
 	{
+        //CLogger::Get ()->Write (FromUSBHID, LogDebug, "Setting report protocol, Interface number %d", GetInterfaceNumber());
 		if (GetHost ()->ControlMessage (GetEndpoint0 (),
 						REQUEST_OUT | REQUEST_CLASS | REQUEST_TO_INTERFACE,
-						SET_PROTOCOL, BOOT_PROTOCOL,
+						SET_PROTOCOL, REPORT_PROTOCOL/*BOOT_PROTOCOL*/,
 						GetInterfaceNumber (), 0, 0) < 0)
 		{
 			CLogger::Get ()->Write (FromUSBHID, LogError, "Cannot set boot protocol");
@@ -128,6 +133,7 @@ boolean CUSBHIDDevice::Configure (unsigned nMaxReportSize)
 		m_pReportBuffer = new u8[m_nMaxReportSize];
 	}
 	assert (m_pReportBuffer != 0);
+    //CLogger::Get ()->Write (FromUSBHID, LogDebug, "m_nMaxReportSize %d", m_nMaxReportSize);
 
 	return TRUE;
 }

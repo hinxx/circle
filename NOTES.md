@@ -1,3 +1,88 @@
+debugging USB mouse wheel
+
+logger: Circle 43.1 started on Raspberry Pi Zero W
+00:00:01.00 timer: SpeedFactor is 1.00
+00:00:01.30 usbdev0-1: Device descriptor:
+00:00:01.31 usbdev: Dumping 0x12 bytes starting at 0x509260
+00:00:01.31 usbdev: 9260: 12 01 10 01 00 00 00 08-8A 24 67 83 00 01 01 02
+00:00:01.32 usbdev: 9270: 00 01
+00:00:01.38 usbdev0-1: Configuration descriptor:
+00:00:01.39 usbdev: Dumping 0x3B bytes starting at 0x5092C0
+00:00:01.39 usbdev: 92C0: 09 02 3B 00 02 01 00 A0-19 09 04 00 00 01 03 01
+00:00:01.40 usbdev: 92D0: 02 00 09 21 11 01 21 01-22 8E 00 07 05 82 03 08
+00:00:01.41 usbdev: 92E0: 00 04 09 04 01 00 01 03-01 01 00 09 21 11 01 21
+00:00:01.41 usbdev: 92F0: 01 22 3B 00 07 05 81 03-08 00 0A 8F BE
+00:00:01.42 usbdev0-1: Device ven248a-8367 found
+00:00:01.42 usbdev0-1: Interface descriptor:
+00:00:01.43 usbdev: Dumping 0x9 bytes starting at 0x5092C9
+00:00:01.43 usbdev: 92C9: 09 04 00 00 01 03 01 02-00
+00:00:01.44 usbdev0-1: Interface int3-1-2 found
+00:00:01.44 usbdev0-1: Using device/interface int3-1-2
+00:00:01.45 usbdev0-1: Interface descriptor:
+00:00:01.45 usbdev: Dumping 0x9 bytes starting at 0x5092E2
+00:00:01.46 usbdev: 92E2: 09 04 01 00 01 03 01 01-00
+00:00:01.46 usbdev0-1: Interface int3-1-1 found
+00:00:01.47 usbdev0-1: Using device/interface int3-1-1
+00:00:01.53 umouse: HID descriptor
+00:00:01.53 umouse: Dumping 0x9 bytes starting at 0x5092D2
+00:00:01.53 umouse: 92D2: 09 21 11 01 21 01 22 8E-00
+00:00:01.54 umouse: Report descriptor
+00:00:01.55 umouse: Dumping 0x8E bytes starting at 0x511060
+00:00:01.55 umouse: 1060: 05 01 09 02 A1 01 85 01-09 01 A1 00 05 09 19 01
+00:00:01.56 umouse: 1070: 29 05 15 00 25 01 95 05-75 01 81 02 95 01 75 03
+00:00:01.57 umouse: 1080: 81 01 05 01 09 30 09 31-15 81 25 7F 75 08 95 02
+00:00:01.57 umouse: 1090: 81 06 09 38 15 81 25 7F-75 08 95 01 81 06 C0 C0
+00:00:01.58 umouse: 10A0: 05 0C 09 01 A1 01 85 03-75 10 95 02 15 01 26 8C
+00:00:01.59 umouse: 10B0: 02 19 01 2A 8C 02 81 00-C0 05 01 09 80 A1 01 85
+00:00:01.59 umouse: 10C0: 04 75 02 95 01 15 01 25-03 09 82 09 81 09 83 81
+00:00:01.60 umouse: 10D0: 60 75 06 81 03 C0 05 01-09 00 A1 01 85 05 06 00
+00:00:01.60 umouse: 10E0: FF 09 01 15 81 25 7F 75-08 95 07 B1 02 C0 A2 D2
+00:00:01.61 usbhid: Endpoint descriptor
+00:00:01.61 usbhid: Dumping 0x7 bytes starting at 0x5092DB
+00:00:01.62 usbhid: 92DB: 07 05 82 03 08 00 04
+00:00:01.63 usbhid: Setting boot protocol, Interface number 0
+00:00:01.63 usbhid: m_nMaxReportSize 3
+00:00:01.64 usbhid: Endpoint descriptor
+00:00:01.64 usbhid: Dumping 0x7 bytes starting at 0x5092F4
+00:00:01.65 usbhid: 92F4: 07 05 81 03 08 00 0A
+00:00:01.65 usbhid: Setting boot protocol, Interface number 1
+00:00:01.66 usbhid: m_nMaxReportSize 8
+00:00:01.67 dwroot: Device configured
+00:00:01.67 kernel: Compile time: Oct 16 2020 18:41:20
+00:00:01.67 kernel: Mouse attached
+
+
+If REPORT_PROTOCOL is set in usbhiddevice.cpp then 5 bytes are received in the 
+ReportHandler() on each mouse move/button press/wheel scroll. Bytes are:
+
+0   0x01 constant?
+1   1 - left button, 2 - right button, 4 - middle button
+2   X displacement (+/- 127 max)
+3   Y displacement (+/- 127 max)
+4   1 - wheel up, -1 wheel down
+
+Sample data in CUSBMouseDevice::ReportHandler():
+00:00:32.92 umouse: 01   2   0   0   0
+00:00:32.93 umouse: 01   2   0   0   0
+00:00:32.94 umouse: 01   2   0   0   0
+00:00:32.95 umouse: 01   2   0   0   1
+00:00:32.96 umouse: 01   2   0   0   0
+00:00:32.96 umouse: 01   2   0   0   0
+00:00:32.97 umouse: 01   2   0   0   0
+00:00:32.98 umouse: 01   2   0   0   0
+00:00:32.99 umouse: 01   2   0   0   0
+00:00:33.00 umouse: 01   0   0   0   0
+00:00:33.15 umouse: 01   0   5   1   0
+00:00:33.16 umouse: 01   0   3   0   0
+00:00:33.17 umouse: 01   0   4   0   0
+00:00:33.18 umouse: 01   0   7   0   0
+00:00:33.19 umouse: 01   0   9   0   0
+00:00:33.19 umouse: 01   0  10   0   0
+00:00:33.20 umouse: 01   0  11   0   0
+00:00:33.21 umouse: 01   0  10   0   0
+00:00:33.22 umouse: 01   0  10   0   0
+
+
 https://github.com/smuehlst/circle-stdlib needs to be built for compiling imgui code (sscanf, atof, ..). This may be relaxed in the future,
 or at least allow using only small subset of the stdlib (newlib) from circle-stdlib.
 
