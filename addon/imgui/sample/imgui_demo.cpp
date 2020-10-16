@@ -583,18 +583,26 @@ void mouse_event_callback(TMouseEvent Event, unsigned nButtons, unsigned nPosX, 
     switch (Event)
 	{
 	case MouseEventMouseMove:
-        // handle mouse button press here to allow for click and drag!
-        g_MousePressed[0] = nButtons & MOUSE_BUTTON_LEFT;
-        g_MousePressed[1] = nButtons & MOUSE_BUTTON_RIGHT;
-        g_MousePressed[2] = nButtons & MOUSE_BUTTON_MIDDLE;
 		mouse_x = nPosX;
 		mouse_y = nPosY;
 		break;
 
     case MouseEventMouseDown:
-        g_MousePressed[0] = nButtons & MOUSE_BUTTON_LEFT;
-        g_MousePressed[1] = nButtons & MOUSE_BUTTON_RIGHT;
-        g_MousePressed[2] = nButtons & MOUSE_BUTTON_MIDDLE;
+        if (nButtons & MOUSE_BUTTON_LEFT)
+            g_MousePressed[0] = true;
+        if (nButtons & MOUSE_BUTTON_RIGHT)
+            g_MousePressed[1] = true;
+        if (nButtons & MOUSE_BUTTON_MIDDLE)
+            g_MousePressed[2] = true;
+        break;
+
+    case MouseEventMouseUp:
+        if (nButtons & MOUSE_BUTTON_LEFT)
+            g_MousePressed[0] = false;
+        if (nButtons & MOUSE_BUTTON_RIGHT)
+            g_MousePressed[1] = false;
+        if (nButtons & MOUSE_BUTTON_MIDDLE)
+            g_MousePressed[2] = false;
         break;
 
     case MouseEventMouseWheel:
@@ -827,9 +835,7 @@ int _main ()
 //   ImGui_ImplSDL2_NewFrame(window);
 
    pMouse->UpdateCursor();
-   // mandatory! reset the mouse button states to get button up in the next frame!
-   g_MousePressed[0] = g_MousePressed[1] = g_MousePressed[2] = false;
-    mouse_wheel = 0;
+   mouse_wheel = 0;
 
    IM_ASSERT(io.Fonts->IsBuilt() && "Font atlas not built! It is generally built by the renderer backend. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame().");
 
