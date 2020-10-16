@@ -804,9 +804,10 @@ int _main ()
 //      draw_triangles(state, cx, cy, 0.003, x, y);
 //   }
 
-   int iter = 10000;
-   while(iter--) {
-
+   int iter = 0;
+   bool terminate = false;
+   while(! terminate) {
+        iter++;
        // update mouse position and button states
        unsigned x, y;
        spin_lock(&mouse_lock);
@@ -878,11 +879,15 @@ int _main ()
            counter++;
        ImGui::SameLine();
        ImGui::Text("counter = %d", counter);
-       ImGui::Text("iter = %d", iter);
+       ImGui::Text("loop iter = %d", iter);
        ImGui::Text("mouse X %4d Y %4d", (int)io.MousePos.x, (int)io.MousePos.y);
        ImGui::Text("mouse buttons = LEFT %d RIGHT %d MIDDLE %d", io.MouseDown[0], io.MouseDown[1], io.MouseDown[2]);
 
        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+       if (ImGui::Button("Terminate"))
+           terminate = true;
+
        ImGui::End();
    }
 
