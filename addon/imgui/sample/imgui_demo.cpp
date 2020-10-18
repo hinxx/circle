@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <circle/sched/scheduler.h>
 #include <circle/input/mousebehaviour.h>
 #include <circle/input/mouse.h>
+#include <circle/usb/usbkeyboard.h>
 #include <circle/devicenameservice.h>
 #include <assert.h>
 #else
@@ -645,6 +646,39 @@ static int get_mouse(CUBE_STATE_T *state, int *outx, int *outy)
    return buttons & 3;
 }
 
+void KeyPressedHandler (const char *pString) {
+//    assert (s_pThis != 0);
+//	s_pThis->m_Screen.Write (pString, strlen (pString));
+
+}
+
+static bool g_terminate = false;
+void ShutdownHandler (void) {
+//    assert (s_pThis != 0);
+//	s_pThis->m_ShutdownMode = ShutdownReboot;
+    g_terminate = true;
+}
+
+void KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned char RawKeys[6]) {
+//    assert (s_pThis != 0);
+
+	CString Message;
+	Message.Format ("Key status (modifiers %02X)", (unsigned) ucModifiers);
+
+	for (unsigned i = 0; i < 6; i++)
+	{
+		if (RawKeys[i] != 0)
+		{
+			CString KeyCode;
+			KeyCode.Format (" %02X", (unsigned) RawKeys[i]);
+
+			Message.Append (KeyCode);
+		}
+	}
+
+	printk(Message);
+}
+
 #else
 
 static int get_mouse(CUBE_STATE_T *state, int *outx, int *outy)
@@ -768,6 +802,7 @@ int _main ()
 
 
    CMouseDevice *pMouse = (CMouseDevice *) CDeviceNameService::Get()->GetDevice("mouse1", FALSE);
+   assert(pMouse != NULL);
    if (! pMouse->Setup(state->screen_width, state->screen_height)) {
        printk("Cannot setup mouse\n");
    }
@@ -775,6 +810,15 @@ int _main ()
    // XXX: consider using ImGui cursor instead of native one!
    pMouse->ShowCursor(TRUE);
    pMouse->RegisterEventHandler(mouse_event_callback);
+
+   CUSBKeyboardDevice *pKeyboard = (CUSBKeyboardDevice *) CDeviceNameService::Get()->GetDevice ("ukbd1", FALSE);
+   assert(pKeyboard != NULL);
+   pKeyboard->RegisterShutdownHandler(ShutdownHandler);
+   // change CUSBKeyboardDevice::ReportHandler() to not return if m_pKeyStatusHandlerRaw
+   // is registered to have both KeyPressedHandler and KeyStatusHandlerRaw executed!
+   // one can deliver keys to UI and another to serial console
+   pKeyboard->RegisterKeyPressedHandler(KeyPressedHandler);
+   pKeyboard->RegisterKeyStatusHandlerRaw(KeyStatusHandlerRaw);
 
    // Setup Dear ImGui context
    IMGUI_CHECKVERSION();
@@ -891,7 +935,11 @@ int _main ()
 
        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
+       // on mouse click
        if (ImGui::Button("Terminate"))
+           terminate = true;
+       // also with Ctrl+Alt+Del
+       if (g_terminate)
            terminate = true;
 
        ImGui::End();

@@ -62,6 +62,8 @@ boolean CKernel::Initialize (void)
 			pTarget = &m_Screen;
 		}
 
+        // use serial port to log messages
+        pTarget = &m_Serial;
 		bOK = m_Logger.Initialize (pTarget);
 	}
 
@@ -92,19 +94,19 @@ TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
 
-	CMouseDevice *pMouse = (CMouseDevice *) m_DeviceNameService.GetDevice ("mouse1", FALSE);
-	if (pMouse != 0)
-	{
-        // all mouse stuff is in main.cpp!
-        // status handler must be NULL for CMouseDevice::UpdateCursor() to work
-		//pMouse->RegisterStatusHandler (mouse_callback);
-	}
-	else
-	{
-		m_Logger.Write (FromKernel, LogNotice, "Please attach an USB mouse!");
+//	CMouseDevice *pMouse = (CMouseDevice *) m_DeviceNameService.GetDevice ("mouse1", FALSE);
+//	if (pMouse != 0)
+//	{
+//        // all mouse stuff is in main.cpp!
+//        // status handler must be NULL for CMouseDevice::UpdateCursor() to work
+//		//pMouse->RegisterStatusHandler (mouse_callback);
+//	}
+//	else
+//	{
+//		m_Logger.Write (FromKernel, LogNotice, "Please attach an USB mouse!");
 
-		m_Scheduler.Sleep (4);
-	}
+//		m_Scheduler.Sleep (4);
+//	}
 
 	_main ();
 
@@ -113,10 +115,10 @@ TShutdownMode CKernel::Run (void)
 
     return ShutdownReboot;
 
-	while (1)
-	{
-		m_Scheduler.Yield ();
-	}
+//	while (1)
+//	{
+//		m_Scheduler.Yield ();
+//	}
 
-	return ShutdownHalt;
+//	return ShutdownHalt;
 }
