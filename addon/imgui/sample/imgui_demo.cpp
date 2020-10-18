@@ -712,6 +712,25 @@ void ShutdownHandler (void) {
     g_terminate = true;
 }
 
+static CString g_clipboard;
+void setClipboardText(void *user_data, const char *text) {
+    (void)user_data;
+    if (!text) {
+        text = "";
+    }
+    g_clipboard = text;
+    //printk("SET clipboard content: '%s'", (const char *)g_clipboard, g_clipboard.GetLength());
+}
+
+const char *getClipboardText(void *user_data) {
+    (void)user_data;
+    const char *text = g_clipboard;
+    if (!text) {
+        text = "";
+    }
+    //printk("GET clipboard content: '%s'", (const char *)text, strlen(text));
+    return text;
+}
 
 #else
 
@@ -869,8 +888,8 @@ int _main ()
 //   ImGui_ImplSDL2_InitForOpenGL(NULL, NULL);
    io.BackendPlatformName = "imgui_impl_circle";
 
-   io.SetClipboardTextFn = NULL;
-   io.GetClipboardTextFn = NULL;
+   io.SetClipboardTextFn = setClipboardText;
+   io.GetClipboardTextFn = getClipboardText;
    io.ClipboardUserData = NULL;
 
    // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
