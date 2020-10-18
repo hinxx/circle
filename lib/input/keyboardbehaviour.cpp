@@ -20,7 +20,8 @@
 #include <circle/input/keyboardbehaviour.h>
 #include <assert.h>
 
-//#define REPEAT_ENABLE
+// HK enable the keyboard repeat for imgui
+#define REPEAT_ENABLE
 
 #define REPEAT_DELAY		MSEC2HZ (400)
 #define REPEAT_RATE		MSEC2HZ (80)

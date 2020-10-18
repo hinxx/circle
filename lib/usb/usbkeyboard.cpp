@@ -159,7 +159,8 @@ void CUSBKeyboardDevice::ReportHandler (const u8 *pReport, unsigned nReportSize)
 	{
 		(*m_pKeyStatusHandlerRaw) (pReport[0], pReport+2);
 
-		return;
+        // HK hack to allow raw and normal callbacks to be executed!!!
+//		return;
 	}
 
 	// report modifier keys

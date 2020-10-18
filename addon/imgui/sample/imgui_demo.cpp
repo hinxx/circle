@@ -646,22 +646,48 @@ static int get_mouse(CUBE_STATE_T *state, int *outx, int *outy)
    return buttons & 3;
 }
 
+static DEFINE_SPINLOCK (keyboard_lock);
+static unsigned char g_cookedKeys[2] = {0};
 void KeyPressedHandler (const char *pString) {
 //    assert (s_pThis != 0);
 //	s_pThis->m_Screen.Write (pString, strlen (pString));
 
+    // expect a single character long string, NUL terminated!
+    // see CKeyMap::GetString()
+    assert(g_cookedKeys[1] == 0);
+
+    spin_lock (&keyboard_lock);
+    g_cookedKeys[0] = *pString;
+    spin_unlock (&keyboard_lock);
+#if DEBUG
+    CString Message;
+	Message.Format ("Text input %s", pString);
+    printk(Message);
+#endif
 }
 
-static bool g_terminate = false;
-void ShutdownHandler (void) {
-//    assert (s_pThis != 0);
-//	s_pThis->m_ShutdownMode = ShutdownReboot;
-    g_terminate = true;
-}
-
+static unsigned char g_rawKeys[6] = {0};
+//#define KEY_LCTRL_MASK		(1 << 0)
+//#define KEY_LSHIFT_MASK		(1 << 1)
+//#define KEY_ALT_MASK		(1 << 2)
+//#define KEY_LWIN_MASK		(1 << 3)
+//#define KEY_RCTRL_MASK		(1 << 4)
+//#define KEY_RSHIFT_MASK		(1 << 5)
+//#define KEY_ALTGR_MASK		(1 << 6)
+//#define KEY_RWIN_MASK		(1 << 7)
+static unsigned char g_modifierKeys = 0;
 void KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned char RawKeys[6]) {
 //    assert (s_pThis != 0);
 
+    spin_lock (&keyboard_lock);
+    g_modifierKeys = ucModifiers;
+    for (unsigned i = 0; i < 6; i++)
+	{
+        g_rawKeys[i] = RawKeys[i];
+    }
+    spin_unlock (&keyboard_lock);
+
+#if DEBUG
 	CString Message;
 	Message.Format ("Key status (modifiers %02X)", (unsigned) ucModifiers);
 
@@ -675,9 +701,17 @@ void KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned char RawKeys
 			Message.Append (KeyCode);
 		}
 	}
-
 	printk(Message);
+#endif
 }
+
+static bool g_terminate = false;
+void ShutdownHandler (void) {
+//    assert (s_pThis != 0);
+//	s_pThis->m_ShutdownMode = ShutdownReboot;
+    g_terminate = true;
+}
+
 
 #else
 
@@ -833,10 +867,35 @@ int _main ()
 
    // Setup Platform/Renderer bindings
 //   ImGui_ImplSDL2_InitForOpenGL(NULL, NULL);
-   io.BackendPlatformName = "imgui_impl_bare";
+   io.BackendPlatformName = "imgui_impl_circle";
+
    io.SetClipboardTextFn = NULL;
    io.GetClipboardTextFn = NULL;
    io.ClipboardUserData = NULL;
+
+   // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
+   io.KeyMap[ImGuiKey_Tab] = 0x2B;
+   io.KeyMap[ImGuiKey_LeftArrow] = 0x50;
+   io.KeyMap[ImGuiKey_RightArrow] = 0x4F;
+   io.KeyMap[ImGuiKey_UpArrow] = 0x52;
+   io.KeyMap[ImGuiKey_DownArrow] = 0x51;
+   io.KeyMap[ImGuiKey_PageUp] = 0x4B;
+   io.KeyMap[ImGuiKey_PageDown] = 0x4E;
+   io.KeyMap[ImGuiKey_Home] = 0x4A;
+   io.KeyMap[ImGuiKey_End] = 0x4D;
+   io.KeyMap[ImGuiKey_Insert] = 0x49;
+   io.KeyMap[ImGuiKey_Delete] = 0x4C;
+   io.KeyMap[ImGuiKey_Backspace] = 0x2A;
+   io.KeyMap[ImGuiKey_Space] = 0x2C;
+   io.KeyMap[ImGuiKey_Enter] = 0x28;
+   io.KeyMap[ImGuiKey_Escape] = 0x28;
+   io.KeyMap[ImGuiKey_KeyPadEnter] = 0x58;
+   io.KeyMap[ImGuiKey_A] = 0x04;
+   io.KeyMap[ImGuiKey_C] = 0x06;
+   io.KeyMap[ImGuiKey_V] = 0x19;
+   io.KeyMap[ImGuiKey_X] = 0x1B;
+   io.KeyMap[ImGuiKey_Y] = 0x1C;
+   io.KeyMap[ImGuiKey_Z] = 0x1D;
 
    const char* glsl_version = "#version 100";
    ImGui_ImplOpenGL3_Init(glsl_version);
@@ -858,11 +917,14 @@ int _main ()
 
    int iter = 0;
    bool terminate = false;
+   unsigned char g_rawKeysLast[6] = {0};
    while(! terminate) {
         iter++;
-       // update mouse position and button states
-       unsigned x, y;
+
+        // update mouse position and button states
        spin_lock(&mouse_lock);
+
+       unsigned x, y;
        x = mouse_x;
        y = mouse_y;
        io.MouseDown[0] = g_MousePressed[0];
@@ -872,6 +934,45 @@ int _main ()
        io.MousePos = ImVec2((float)x, (float)y);
 
        spin_unlock(&mouse_lock);
+
+       // update keyboard key presses/releases
+       spin_lock(&keyboard_lock);
+
+       // signal key release
+       // if any of the keys are stil pressed in this frame, they will be set in the key press loop below
+       for (unsigned i = 0; i < 6; i++) {
+           int key = g_rawKeysLast[i];
+           if (key == KeyNone) {
+               continue;
+           }
+           io.KeysDown[key] = false;
+           g_rawKeysLast[i] = KeyNone;
+        }
+
+       // signal key press
+       for (unsigned i = 0; i < 6; i++) {
+           int key = g_rawKeys[i];
+           if (key == KeyNone) {
+               continue;
+           }
+           IM_ASSERT(key >= 0 && key < IM_ARRAYSIZE(io.KeysDown));
+           io.KeysDown[key] = true;
+           g_rawKeysLast[i] = key;
+       }
+
+       // set key modifiers
+       io.KeyShift = ((g_modifierKeys & KEY_LSHIFT_MASK) != 0) || (g_modifierKeys & KEY_RSHIFT_MASK) != 0;
+       io.KeyCtrl = ((g_modifierKeys & KEY_LCTRL_MASK) != 0) || ((g_modifierKeys & KEY_RCTRL_MASK) != 0);
+       io.KeyAlt = ((g_modifierKeys & KEY_ALT_MASK) != 0) || ((g_modifierKeys & KEY_ALTGR_MASK) != 0);
+       io.KeySuper = ((g_modifierKeys & KEY_LWIN_MASK) != 0) || ((g_modifierKeys & KEY_RWIN_MASK) != 0);
+
+       // set input text if any
+       if (g_cookedKeys[0] != KeyNone) {
+           io.AddInputCharacter(g_cookedKeys[0]);
+           g_cookedKeys[0] = KeyNone;
+       }
+
+       spin_unlock(&keyboard_lock);
 
    // Start the Dear ImGui frame
    ImGui_ImplOpenGL3_NewFrame();
