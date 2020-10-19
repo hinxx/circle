@@ -1,3 +1,13 @@
+Make suer that the SD card config.txt contains:
+
+disable_overscan=1
+
+to avoid having black bars on monitor boundaries!
+
+This solves the issue with the framebuffer size not being 1920x1080 on 1080p @60Hz monitor.
+This also solves the mouse cursor not being in the right location; now it can move within the
+whole framebuffer area / monitor area.
+
 debugging USB mouse wheel
 
 logger: Circle 43.1 started on Raspberry Pi Zero W
