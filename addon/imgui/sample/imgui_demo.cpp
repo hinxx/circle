@@ -851,8 +851,7 @@ int _main ()
 //   init_shaders(state);
 //   cx = state->screen_width/2;
 //   cy = state->screen_height/2;
-   printk("Screen %d x %d\n", state->screen_width, state->screen_height);
-
+   printk("vc4 screen %d x %d\n", state->screen_width, state->screen_height);
 
    CMouseDevice *pMouse = (CMouseDevice *) CDeviceNameService::Get()->GetDevice("mouse1", FALSE);
    assert(pMouse != NULL);
@@ -915,6 +914,9 @@ int _main ()
    io.KeyMap[ImGuiKey_X] = 0x1B;
    io.KeyMap[ImGuiKey_Y] = 0x1C;
    io.KeyMap[ImGuiKey_Z] = 0x1D;
+
+   // draw imgui cursor (do not have to use circle pMouse->ShowCursor(TRUE);)
+   io.MouseDrawCursor = true;
 
    const char* glsl_version = "#version 100";
    ImGui_ImplOpenGL3_Init(glsl_version);

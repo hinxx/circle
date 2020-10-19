@@ -93,6 +93,7 @@ boolean CKernel::Initialize (void)
 TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
+    m_Logger.Write (FromKernel, LogNotice, "fb screen %d, %d", m_Screen.GetWidth (), m_Screen.GetHeight ());
 
 //	CMouseDevice *pMouse = (CMouseDevice *) m_DeviceNameService.GetDevice ("mouse1", FALSE);
 //	if (pMouse != 0)
