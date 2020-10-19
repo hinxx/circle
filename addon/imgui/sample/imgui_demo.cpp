@@ -860,7 +860,7 @@ int _main ()
    }
    pMouse->SetCursor(state->screen_width/2, state->screen_height/2);
    // XXX: consider using ImGui cursor instead of native one!
-   pMouse->ShowCursor(TRUE);
+   //   pMouse->ShowCursor(TRUE);
    pMouse->RegisterEventHandler(mouse_event_callback);
 
    CUSBKeyboardDevice *pKeyboard = (CUSBKeyboardDevice *) CDeviceNameService::Get()->GetDevice ("ukbd1", FALSE);
