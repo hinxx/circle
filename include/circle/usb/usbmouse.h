@@ -25,27 +25,24 @@
 #include <circle/types.h>
 
 enum TMouseReportType {
-    MouseItemNone,
     MouseItemButtons,
     MouseItemXAxis,
     MouseItemYAxis,
-    MouseItemWheel
+    MouseItemWheel,
+
+    MouseItemCount
 };
 
 struct TMouseReportItem {
-    unsigned type;
-    unsigned count;
-    unsigned offset;
+    unsigned bitSize;
+    unsigned bitOffset;
 };
-#define MAX_ITEMS    16
 
 struct TMouseReport
 {
     unsigned id;
-    unsigned size;
-
-    unsigned nItems;
-    TMouseReportItem items[MAX_ITEMS];
+    unsigned byteSize;
+    TMouseReportItem items[MouseItemCount];
 };
 
 class CUSBMouseDevice : public CUSBHIDDevice
