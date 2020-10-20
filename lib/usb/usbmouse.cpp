@@ -199,7 +199,7 @@ void CUSBMouseDevice::ReportHandler (const u8 *pReport, unsigned nReportSize)
                 nButtons |= MOUSE_BUTTON_MIDDLE;
             }
 
-            //CLogger::Get ()->Write (FromUSBMouse, LogDebug, "2: %02X %2d %3d %3d %3d", pReport[0], nButtons, xMove, yMove, wheelMove);
+            //CLogger::Get ()->Write (FromUSBMouse, LogDebug, "%02X %2d %3d %3d %3d", pReport[0], nButtons, xMove, yMove, wheelMove);
             m_pMouseDevice->ReportHandler (nButtons, xMove, yMove, wheelMove);
 		}
 	}
@@ -254,6 +254,7 @@ void CUSBMouseDevice::DecodeReport ()
     u32 itemIndex = 0;
     u32 reportIndex = 0;
     boolean parse = FALSE;
+    boolean foundMouseUsage = FALSE;
 
 	assert (m_pHIDReportDescriptor != 0);
 	s8 *pHIDReportDescriptor = (s8 *) m_pHIDReportDescriptor;
@@ -297,38 +298,39 @@ void CUSBMouseDevice::DecodeReport ()
             if (nCollections == 0)
                 parse = FALSE;
             break;
-		case HID_USAGE_PAGE:
-			switch(arg)
-			{
-            case HID_USAGE_PAGE_GENERIC_DESKTOP:
-                //fprintf(stderr, "Generic Desktop Controls\n");
-                break;
-			}
-			break;
 		case HID_USAGE:
-			switch(arg)
-			{
-            case HID_USAGE_MOUSE:
-                parse = TRUE;
-                //fprintf(stderr, "state: Mouse\n");
-                break;
+			if (arg == HID_USAGE_MOUSE) {
+                //fprintf(stderr, "found mouse usage\n");
+                foundMouseUsage = TRUE;
+            }
+            break;
+        case HID_REPORT_ID:
+            //fprintf(stderr, "found report ID %d, current report ID %d\n", arg, id);
+            if (foundMouseUsage) {
+                if (id == 0) {
+                    // mouse report ID not set yet, set it now!
+                    id = arg;
+                    //fprintf(stderr, "using report ID %d\n", id);
+                    offset += 8;
+                    parse = TRUE;
+                } else {
+                    // mouse report ID already set, check if found ID matches..
+                    if ((u32)arg != id) {
+                        // do not parse items that are not for the mouse report ID
+                        parse = FALSE;
+                        //fprintf(stderr, "not using report ID %d, want report ID %d\n", arg, id);
+                    } else {
+                        parse = TRUE;
+                        // parse items that are for the mouse report ID
+                        //fprintf(stderr, "keep using report ID %d\n", id);
+                    }
+                }
             }
             break;
         }
 
         if (! parse)
             continue;
-
-		if ((item & 0xFC) == HID_REPORT_ID)
-		{
-            assert(id == 0);
-            if (id != 0){
-                break;
-            }
-			id = arg;
-			offset = 8;
-            //fprintf(stderr, "report ID %d\n", id);
-		}
 
 		switch(item & 0xFC)
 		{
