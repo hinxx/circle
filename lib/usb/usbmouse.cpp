@@ -302,6 +302,17 @@ void CUSBMouseDevice::DecodeReport ()
 			if (arg == HID_USAGE_MOUSE) {
                 //fprintf(stderr, "found mouse usage\n");
                 foundMouseUsage = TRUE;
+            } else if (arg == HID_USAGE_POINTER) {
+                //fprintf(stderr, "found pointer usage\n");
+                // if the id is still 0 then this device does
+                // not use report ID item(s)!
+                if (id == 0) {
+                    //fprintf(stderr, "using report ID %d\n", id);
+                    parse = true;
+                } else {
+                    //fprintf(stderr, "using report ID %d\n", id);
+                }
+                break;
             }
             break;
         case HID_REPORT_ID:
