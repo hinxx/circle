@@ -92,6 +92,7 @@ Sample data in CUSBMouseDevice::ReportHandler():
 00:00:33.21 umouse: 01   0  10   0   0
 00:00:33.22 umouse: 01   0  10   0   0
 
+https://github.com/rsta2/circle/issues/142
 
 https://github.com/smuehlst/circle-stdlib needs to be built for compiling imgui code (sscanf, atof, ..). This may be relaxed in the future,
 or at least allow using only small subset of the stdlib (newlib) from circle-stdlib.

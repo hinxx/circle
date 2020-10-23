@@ -306,10 +306,7 @@ void CUSBMouseDevice::DecodeReport ()
                 if (id == 0) {
                     //fprintf(stderr, "using report ID %d\n", id);
                     parse = true;
-                } else {
-                    //fprintf(stderr, "using report ID %d\n", id);
                 }
-                break;
             }
             break;
         case HID_REPORT_ID:
@@ -400,8 +397,8 @@ void CUSBMouseDevice::DecodeReport ()
                     index++;
                 }
                 itemIndex = 0;
-
             }
+
             offset += count * size;
 			break;
 		}
