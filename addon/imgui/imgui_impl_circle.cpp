@@ -38,7 +38,7 @@
 
 // Data
 //static SDL_Window*  g_Window = NULL;
-//static Uint64       g_Time = 0;
+static unsigned g_Ticks = 0;
 //static bool         g_MousePressed[3] = { false, false, false };
 //static SDL_Cursor*  g_MouseCursors[ImGuiMouseCursor_COUNT] = {};
 //static char*        g_ClipboardTextData = NULL;
@@ -277,12 +277,21 @@ bool ImGui_ImplCircle_ProcessEvent(/*const SDL_Event* event*/)
 
 bool ImGui_ImplCircle_Init(/*SDL_Window* window, */void* sdl_gl_context)
 {
-
     // Setup backend capabilities flags
     ImGuiIO& io = ImGui::GetIO();
     //io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;       // We can honor GetMouseCursor() values (optional)
     //io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;        // We can honor io.WantSetMousePos requests (optional, rarely used)
     io.BackendPlatformName = "imgui_impl_circle";
+
+    // Setup display size (only at init, no window resizing)
+    int w, h;
+    int display_w, display_h;
+    w = state->screen_width;
+    h = state->screen_height;
+    display_w = state->screen_width;
+    display_h = state->screen_height;
+    io.DisplaySize = ImVec2((float)w, (float)h);
+    io.DisplayFramebufferScale = ImVec2((float)display_w / w, (float)display_h / h);
 
     // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
     io.KeyMap[ImGuiKey_Tab] = 0x2B;
@@ -315,7 +324,6 @@ bool ImGui_ImplCircle_Init(/*SDL_Window* window, */void* sdl_gl_context)
     // draw imgui cursor (do not have to use circle pMouse->ShowCursor(TRUE);)
     io.MouseDrawCursor = true;
 
-
     CMouseDevice *pMouse = (CMouseDevice *) CDeviceNameService::Get()->GetDevice("mouse1", FALSE);
     assert(pMouse != NULL);
     if (! pMouse->Setup(state->screen_width, state->screen_height)) {
@@ -338,125 +346,24 @@ bool ImGui_ImplCircle_Init(/*SDL_Window* window, */void* sdl_gl_context)
     return true;
 }
 
-//bool ImGui_ImplSDL2_InitForOpenGL(SDL_Window* window, void* sdl_gl_context)
-//{
-//    (void)sdl_gl_context; // Viewport branch will need this.
-//    return ImGui_ImplSDL2_Init(window);
-//}
-
-//bool ImGui_ImplSDL2_InitForVulkan(SDL_Window* window)
-//{
-//#if !SDL_HAS_VULKAN
-//    IM_ASSERT(0 && "Unsupported");
-//#endif
-//    return ImGui_ImplSDL2_Init(window);
-//}
-
-//bool ImGui_ImplSDL2_InitForD3D(SDL_Window* window)
-//{
-//#if !defined(_WIN32)
-//    IM_ASSERT(0 && "Unsupported");
-//#endif
-//    return ImGui_ImplSDL2_Init(window);
-//}
-
-//bool ImGui_ImplSDL2_InitForMetal(SDL_Window* window)
-//{
-//    return ImGui_ImplSDL2_Init(window);
-//}
-
 void ImGui_ImplCircle_Shutdown()
 {
-//    g_Window = NULL;
-
-    // Destroy last known clipboard data
-//    if (g_ClipboardTextData)
-//        SDL_free(g_ClipboardTextData);
-    g_ClipboardTextData = NULL;
 }
-
-//static void ImGui_ImplSDL2_UpdateMousePosAndButtons()
-//{
-//    ImGuiIO& io = ImGui::GetIO();
-
-//    // Set OS mouse position if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
-//    if (io.WantSetMousePos)
-//        SDL_WarpMouseInWindow(g_Window, (int)io.MousePos.x, (int)io.MousePos.y);
-//    else
-//        io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
-
-//    int mx, my;
-//    Uint32 mouse_buttons = SDL_GetMouseState(&mx, &my);
-//    io.MouseDown[0] = g_MousePressed[0] || (mouse_buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0;  // If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
-//    io.MouseDown[1] = g_MousePressed[1] || (mouse_buttons & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
-//    io.MouseDown[2] = g_MousePressed[2] || (mouse_buttons & SDL_BUTTON(SDL_BUTTON_MIDDLE)) != 0;
-//    g_MousePressed[0] = g_MousePressed[1] = g_MousePressed[2] = false;
-
-//    if (SDL_GetWindowFlags(g_Window) & SDL_WINDOW_INPUT_FOCUS)
-//        io.MousePos = ImVec2((float)mx, (float)my);
-//}
 
 void ImGui_ImplCircle_NewFrame(/*SDL_Window* window*/)
 {
     ImGuiIO& io = ImGui::GetIO();
     IM_ASSERT(io.Fonts->IsBuilt() && "Font atlas not built! It is generally built by the renderer backend. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame().");
 
-//    // Setup display size (every frame to accommodate for window resizing)
-//    int w, h;
-//    int display_w, display_h;
-//    SDL_GetWindowSize(window, &w, &h);
-//    if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)
-//        w = h = 0;
-//    SDL_GL_GetDrawableSize(window, &display_w, &display_h);
-//    io.DisplaySize = ImVec2((float)w, (float)h);
-//    if (w > 0 && h > 0)
-//        io.DisplayFramebufferScale = ImVec2((float)display_w / w, (float)display_h / h);
-
-//    // Setup time step (we don't use SDL_GetTicks() because it is using millisecond resolution)
-//    static Uint64 frequency = SDL_GetPerformanceFrequency();
-//    Uint64 current_time = SDL_GetPerformanceCounter();
-//    io.DeltaTime = g_Time > 0 ? (float)((double)(current_time - g_Time) / frequency) : (float)(1.0f / 60.0f);
-//    g_Time = current_time;
-
-    //ImGui_ImplSDL2_UpdateMousePosAndButtons();
-    //ImGui_ImplSDL2_UpdateMouseCursor();
-
-    // Update game controllers (if enabled and available)
-    //ImGui_ImplSDL2_UpdateGamepads();
-
-
-
     CMouseDevice *pMouse = (CMouseDevice *) CDeviceNameService::Get()->GetDevice("mouse1", FALSE);
     assert(pMouse != NULL);
     pMouse->UpdateCursor();
     mouse_wheel = 0;
 
-    IM_ASSERT(io.Fonts->IsBuilt() && "Font atlas not built! It is generally built by the renderer backend. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame().");
-
-    // Setup display size (every frame to accommodate for window resizing)
-    int w, h;
-    int display_w, display_h;
- //   SDL_GetWindowSize(window, &w, &h);
- //   if (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED)
- //       w = h = 0;
- //   SDL_GL_GetDrawableSize(window, &display_w, &display_h);
- //   io.DisplaySize = ImVec2((float)w, (float)h);
- //   if (w > 0 && h > 0)
- //       io.DisplayFramebufferScale = ImVec2((float)display_w / w, (float)display_h / h);
-    w = state->screen_width;
-    h = state->screen_height;
-    display_w = state->screen_width;
-    display_h = state->screen_height;
-    io.DisplaySize = ImVec2((float)w, (float)h);
-    io.DisplayFramebufferScale = ImVec2((float)display_w / w, (float)display_h / h);
-
-    // Setup time step (we don't use SDL_GetTicks() because it is using millisecond resolution)
- //   static Uint64 frequency = SDL_GetPerformanceFrequency();
- //   Uint64 current_time = SDL_GetPerformanceCounter();
- //   io.DeltaTime = g_Time > 0 ? (float)((double)(current_time - g_Time) / frequency) : (float)(1.0f / 60.0f);
- //   g_Time = current_time;
-    io.DeltaTime = (float)(1.0f / 60.0f);
-
+    unsigned ticks = CTimer::Get()->GetClockTicks();
+    io.DeltaTime = (g_Ticks > 0) ?
+                (float)((double)(ticks - g_Ticks) / 1000000) : (float)(1.0f / 60.0f);
+    g_Ticks = ticks;
 }
 
 
