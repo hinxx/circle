@@ -216,45 +216,7 @@ static void ImGui_ImplCircle_SetClipboardText(void*, const char* text)
 bool ImGui_ImplCircle_ProcessEvent(/*const SDL_Event* event*/)
 {
     ImGuiIO& io = ImGui::GetIO();
-//    switch (event->type)
-//    {
-//    case SDL_MOUSEWHEEL:
-//        {
-//            if (event->wheel.x > 0) io.MouseWheelH += 1;
-//            if (event->wheel.x < 0) io.MouseWheelH -= 1;
-//            if (event->wheel.y > 0) io.MouseWheel += 1;
-//            if (event->wheel.y < 0) io.MouseWheel -= 1;
-//            return true;
-//        }
-//    case SDL_MOUSEBUTTONDOWN:
-//        {
-//            if (event->button.button == SDL_BUTTON_LEFT) g_MousePressed[0] = true;
-//            if (event->button.button == SDL_BUTTON_RIGHT) g_MousePressed[1] = true;
-//            if (event->button.button == SDL_BUTTON_MIDDLE) g_MousePressed[2] = true;
-//            return true;
-//        }
-//    case SDL_TEXTINPUT:
-//        {
-//            io.AddInputCharactersUTF8(event->text.text);
-//            return true;
-//        }
-//    case SDL_KEYDOWN:
-//    case SDL_KEYUP:
-//        {
-//            int key = event->key.keysym.scancode;
-//            IM_ASSERT(key >= 0 && key < IM_ARRAYSIZE(io.KeysDown));
-//            io.KeysDown[key] = (event->type == SDL_KEYDOWN);
-//            io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
-//            io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
-//            io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
-//#ifdef _WIN32
-//            io.KeySuper = false;
-//#else
-//            io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
-//#endif
-//            return true;
-//        }
-//    }
+
     // update mouse position and button states
    spin_lock(&mouse_lock);
 
@@ -265,6 +227,8 @@ bool ImGui_ImplCircle_ProcessEvent(/*const SDL_Event* event*/)
    io.MouseDown[1] = g_MousePressed[1];
    io.MouseDown[2] = g_MousePressed[2];
    io.MouseWheel += mouse_wheel;
+   // TODO
+   // io.MouseWheelH += mouse_wheel;
    io.MousePos = ImVec2((float)x, (float)y);
 
    spin_unlock(&mouse_lock);
@@ -308,7 +272,7 @@ bool ImGui_ImplCircle_ProcessEvent(/*const SDL_Event* event*/)
 
    spin_unlock(&keyboard_lock);
 
-    return false;
+    return true;
 }
 
 bool ImGui_ImplCircle_Init(/*SDL_Window* window, */void* sdl_gl_context)
