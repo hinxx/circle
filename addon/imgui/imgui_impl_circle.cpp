@@ -70,6 +70,7 @@ static unsigned char g_rawKeysLast[6] = {0};
 static CString g_ClipboardTextData;
 
 #define check() assert(glGetError() == 0)
+//#define check() do { printk("%s:%d\n", __FUNCTION__, __LINE__); assert(glGetError() == 0); } while(0);
 
 static void mouseEventHandler(TMouseEvent Event, unsigned nButtons, unsigned nPosX, unsigned nPosY, int nWheelMove)
 {
@@ -217,12 +218,12 @@ bool ImGui_ImplCircle_ProcessEvent(void)
    io.KeyAlt = ((g_modifierKeys & KEY_ALT_MASK) != 0) || ((g_modifierKeys & KEY_ALTGR_MASK) != 0);
    io.KeySuper = ((g_modifierKeys & KEY_LWIN_MASK) != 0) || ((g_modifierKeys & KEY_RWIN_MASK) != 0);
 
-   // set input text if any
-   if (g_cookedKeys[0] != KeyNone)
+   // set input text if any and also not Enter keypress
+   if ((g_cookedKeys[0] != KeyNone) && (g_cookedKeys[0] != '\n'))
    {
        io.AddInputCharacter(g_cookedKeys[0]);
-       g_cookedKeys[0] = KeyNone;
    }
+   g_cookedKeys[0] = KeyNone;
 
    spin_unlock(&keyboard_lock);
 
@@ -524,7 +525,10 @@ void CircleExit(void)
 void CircleSwapBuffers(void)
 {
     eglSwapBuffers(state->display, state->surface);
-    //check();
+    // NOTE:
+    // enable this check once the glBlendEquationSeparate() use on RPi is clarified
+    // see ImGui_ImplOpenGL3_RenderDrawData()!
+    // check();
 
     // wait for vsync
     mutex_lock(&vsync_cond_mutex);
