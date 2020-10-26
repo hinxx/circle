@@ -5,7 +5,7 @@
 CIRCLEHOME = ../..
 
 OBJS = imgui.o
-#OBJS += imgui_impl_sdl.o
+OBJS += imgui_impl_circle.o
 OBJS += imgui_impl_opengl3.o
 OBJS += imgui_demo.o
 OBJS += imgui_draw.o
