@@ -102,6 +102,8 @@ addon/imgui/imgui.cpp
 addon/imgui/imgui.h
 addon/imgui/imgui_demo.cpp
 addon/imgui/imgui_draw.cpp
+addon/imgui/imgui_impl_circle.cpp
+addon/imgui/imgui_impl_circle.h
 addon/imgui/imgui_impl_opengl3.cpp
 addon/imgui/imgui_impl_opengl3.h
 addon/imgui/imgui_impl_sdl.cpp
@@ -115,6 +117,7 @@ addon/imgui/sample/0Makefile
 addon/imgui/sample/Makefile
 addon/imgui/sample/imgui_demo.cpp
 addon/imgui/sample/imgui_demo.h
+addon/imgui/sample/imgui_main.cpp
 addon/imgui/sample/kernel.cpp
 addon/imgui/sample/kernel.h
 addon/imgui/sample/main.cpp
