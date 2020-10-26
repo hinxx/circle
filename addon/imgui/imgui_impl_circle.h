@@ -19,12 +19,12 @@
 //struct SDL_Window;
 //typedef union SDL_Event SDL_Event;
 
-void CircleInit(/*CUBE_STATE_T *state*/);
+void CircleInit(void);
 void CircleExit(void);
 bool CircleTerminate(void);
 void CircleSwapBuffers(void);
 
 IMGUI_IMPL_API bool     ImGui_ImplCircle_Init(/*SDL_Window* window, */void* sdl_gl_context);
 IMGUI_IMPL_API void     ImGui_ImplCircle_Shutdown(void);
-IMGUI_IMPL_API void     ImGui_ImplCircle_NewFrame(/*SDL_Window* window*/);
+IMGUI_IMPL_API void     ImGui_ImplCircle_NewFrame(void);
 IMGUI_IMPL_API bool     ImGui_ImplCircle_ProcessEvent(/*const SDL_Event* event*/);

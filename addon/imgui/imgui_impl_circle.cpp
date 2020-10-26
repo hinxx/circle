@@ -337,6 +337,7 @@ bool ImGui_ImplCircle_Init(/*SDL_Window* window, */void* sdl_gl_context)
     CUSBKeyboardDevice *pKeyboard = (CUSBKeyboardDevice *) CDeviceNameService::Get()->GetDevice ("ukbd1", FALSE);
     assert(pKeyboard != NULL);
     pKeyboard->RegisterShutdownHandler(ShutdownHandler);
+    // NOTE:
     // change CUSBKeyboardDevice::ReportHandler() to not return if m_pKeyStatusHandlerRaw
     // is registered to have both KeyPressedHandler and KeyStatusHandlerRaw executed!
     // one can deliver keys to UI and another to serial console
@@ -346,11 +347,11 @@ bool ImGui_ImplCircle_Init(/*SDL_Window* window, */void* sdl_gl_context)
     return true;
 }
 
-void ImGui_ImplCircle_Shutdown()
+void ImGui_ImplCircle_Shutdown(void)
 {
 }
 
-void ImGui_ImplCircle_NewFrame(/*SDL_Window* window*/)
+void ImGui_ImplCircle_NewFrame(void)
 {
     ImGuiIO& io = ImGui::GetIO();
     IM_ASSERT(io.Fonts->IsBuilt() && "Font atlas not built! It is generally built by the renderer backend. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame().");
@@ -367,85 +368,44 @@ void ImGui_ImplCircle_NewFrame(/*SDL_Window* window*/)
 }
 
 
-void printConfigInfo(int n, EGLDisplay display, EGLConfig *config) {
+static void printConfigInfo(int n, EGLDisplay display, EGLConfig *config)
+{
+
+    EGLint red;
+    eglGetConfigAttrib(display, *config, EGL_RED_SIZE, &red);
+    EGLint blue;
+    eglGetConfigAttrib(display, *config, EGL_BLUE_SIZE, &blue);
+    EGLint green;
+    eglGetConfigAttrib(display, *config, EGL_GREEN_SIZE, &green);
+    EGLint alpha;
+    eglGetConfigAttrib(display, *config, EGL_ALPHA_SIZE, &alpha);
     EGLint size;
-
-//    printk("Configuration %d is\n", n);
-
-    eglGetConfigAttrib(display, *config, EGL_RED_SIZE, &size);
-    EGLint red = size;
-//    printk("  Red size is %d\n", size);
-    eglGetConfigAttrib(display, *config, EGL_BLUE_SIZE, &size);
-    EGLint blue = size;
-//    printk("  Blue size is %d\n", size);
-    eglGetConfigAttrib(display, *config, EGL_GREEN_SIZE, &size);
-    EGLint green = size;
-//    printk("  Green size is %d\n", size);
-    eglGetConfigAttrib(display, *config, EGL_ALPHA_SIZE, &size);
-    EGLint alpha = size;
-//    printk("  Alpha size is %d\n", size);
     eglGetConfigAttrib(display, *config, EGL_BUFFER_SIZE, &size);
-//    printk("  Buffer size is %d\n", size);
-
     EGLint rgb;
-   eglGetConfigAttrib(display, *config,  EGL_BIND_TO_TEXTURE_RGB , &rgb);
-//   if (rgb == EGL_TRUE)
-//       printk("  Can be bound to RGB texture\n");
-//   else
-//       printk("  Can't be bound to RGB texture\n");
-
+   eglGetConfigAttrib(display, *config,  EGL_BIND_TO_TEXTURE_RGB, &rgb);
    EGLint rgba;
-   eglGetConfigAttrib(display, *config,  EGL_BIND_TO_TEXTURE_RGBA , &rgba);
-//   if (rgba == EGL_TRUE)
-//       printk("  Can be bound to RGBA texture\n");
-//   else
-//       printk("  Can't be bound to RGBA texture\n");
+   eglGetConfigAttrib(display, *config,  EGL_BIND_TO_TEXTURE_RGBA, &rgba);
    printk("[%02d] R %d G %d B %d A %d S %d %s %s\n",
           n, red, green, blue, alpha, size,
           (rgb == EGL_TRUE)?"Y":"N", (rgba == EGL_TRUE)?"Y":"N");
 }
 
-
-static void vsync_callback(DISPMANX_UPDATE_HANDLE_T u, void *data) {
-//   SDL_WindowData *wdata = ((SDL_WindowData *) data);
-//   SDL_LockMutex(wdata->vsync_cond_mutex);
-//   SDL_CondSignal(wdata->vsync_cond);
-//   SDL_UnlockMutex(wdata->vsync_cond_mutex);
-
+static void vsyncCallback(DISPMANX_UPDATE_HANDLE_T u, void *data)
+{
     (void)u;
     (void)data;
-//    printk("vsync callback called..\n");
+
     mutex_lock(&vsync_cond_mutex);
     complete(&vsync_cond);
     mutex_unlock(&vsync_cond_mutex);
 }
 
-/***********************************************************
- * Name: init_ogl
- *
- * Arguments:
- *       CUBE_STATE_T *state - holds OGLES model info
- *
- * Description: Sets the display, OpenGL|ES context and screen stuff
- *
- * Returns: void
- *
- ***********************************************************/
-void CircleInit(/*CUBE_STATE_T *state*/)
+void CircleInit(void)
 {
-
-    //g_Window = window;
     bcm_host_init();
 
-    // Clear application state
+    // clear application state
     memset( state, 0, sizeof( *state ) );
-
-    // Start OGLES
-//    init_ogl(state);
- //   init_shaders(state);
- //   cx = state->screen_width/2;
- //   cy = state->screen_height/2;
-    printk("vc4 screen %d x %d\n", state->screen_width, state->screen_height);
 
    int32_t success = 0;
    EGLBoolean result;
@@ -463,9 +423,6 @@ void CircleInit(/*CUBE_STATE_T *state*/)
       EGL_GREEN_SIZE, 8,
       EGL_BLUE_SIZE, 8,
       EGL_ALPHA_SIZE, 8,
-//      EGL_ALPHA_SIZE, 0,
-//      EGL_DEPTH_SIZE, 24,
-//      EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
       EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
       EGL_NONE
    };
@@ -492,24 +449,18 @@ void CircleInit(/*CUBE_STATE_T *state*/)
 
    eglGetConfigs(state->display, NULL, 0, &num_configs);
    printk("EGL has %d configs\n", num_configs);
-
    configs = (EGLConfig *)calloc(num_configs, sizeof *configs);
    eglGetConfigs(state->display, configs, num_configs, &num_configs);
-
-   //CScheduler *sched = CScheduler::Get();
-   //int i;
-   //for (i = 0; i < num_configs; i++) {
+   //for (int i = 0; i < num_configs; i++) {
    //     printConfigInfo(i, state->display, &configs[i]);
    //}
-   //sched->Sleep(5);
 
-   // get an appropriate EGL frame buffer configuration
+   // get first EGL frame buffer configuration
    result = eglChooseConfig(state->display, attribute_list, &config, 1, &num_config);
    assert(EGL_FALSE != result);
    check();
-   printk("\nselected config:\n");
+   printk("selected config:\n");
    printConfigInfo(1, state->display, &config);
-   //sched->Sleep(5);
 
    // get an appropriate EGL frame buffer configuration
    result = eglBindAPI(EGL_OPENGL_ES_API);
@@ -524,6 +475,7 @@ void CircleInit(/*CUBE_STATE_T *state*/)
    // create an EGL window surface
    success = graphics_get_display_size(0 /* LCD */, &state->screen_width, &state->screen_height);
    assert( success >= 0 );
+   printk("vc4 screen %d x %d\n", state->screen_width, state->screen_height);
 
    dst_rect.x = 0;
    dst_rect.y = 0;
@@ -535,28 +487,30 @@ void CircleInit(/*CUBE_STATE_T *state*/)
    src_rect.width = state->screen_width << 16;
    src_rect.height = state->screen_height << 16;
 
-   state->dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
-   dispman_update = vc_dispmanx_update_start( 0 );
+   state->dispman_display = vc_dispmanx_display_open(0 /* LCD */);
+   dispman_update = vc_dispmanx_update_start(0);
 
    // from SDL_rpivideo.c
    VC_DISPMANX_ALPHA_T dispman_alpha;
-   /* Disable alpha, otherwise the app looks composed with whatever dispman is showing (X11, console,etc) */
+   // disable alpha, otherwise the app looks composed with whatever dispman
+   // is showing (X11, console,etc)
    dispman_alpha.flags = DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS;
    dispman_alpha.opacity = 0xFF;
    dispman_alpha.mask = 0;
 
-   state->dispman_element = vc_dispmanx_element_add ( dispman_update, state->dispman_display,
+   state->dispman_element = vc_dispmanx_element_add(dispman_update, state->dispman_display,
       0/*layer*/, &dst_rect, 0/*src*/,
-      &src_rect, DISPMANX_PROTECTION_NONE, &dispman_alpha /*alpha*/, 0/*clamp*/, DISPMANX_NO_ROTATE/*transform*/);
+      &src_rect, DISPMANX_PROTECTION_NONE,
+      &dispman_alpha /*alpha*/, 0/*clamp*/, DISPMANX_NO_ROTATE/*transform*/);
 
    nativewindow.element = state->dispman_element;
    nativewindow.width = state->screen_width;
    nativewindow.height = state->screen_height;
-   vc_dispmanx_update_submit_sync( dispman_update );
+   vc_dispmanx_update_submit_sync(dispman_update);
 
    check();
 
-   state->surface = eglCreateWindowSurface( state->display, config, &nativewindow, NULL );
+   state->surface = eglCreateWindowSurface(state->display, config, &nativewindow, NULL);
    assert(state->surface != EGL_NO_SURFACE);
    check();
 
@@ -567,27 +521,26 @@ void CircleInit(/*CUBE_STATE_T *state*/)
 
    // Set background color and clear buffers
    glClearColor(0.15f, 0.25f, 0.35f, 1.0f);
-   glClear( GL_COLOR_BUFFER_BIT );
+   glClear(GL_COLOR_BUFFER_BIT);
    check();
 
    // start generating vsync callbacks
    init_completion(&vsync_cond);
    mutex_init(&vsync_cond_mutex);
-   vc_dispmanx_vsync_callback(state->dispman_display, vsync_callback, NULL/*(void*)wdata*/);
+   vc_dispmanx_vsync_callback(state->dispman_display, vsyncCallback, NULL);
 
     // enable vsync
     result = eglSwapInterval(state->display, 1);
     assert(EGL_FALSE != result);
     check();
-}
 
+    printk("vc4 initialized!\n");
+}
 
 void CircleExit(void)
 {
-   DISPMANX_UPDATE_HANDLE_T dispman_update;
-   int s;
    // clear screen
-   glClear( GL_COLOR_BUFFER_BIT );
+   glClear(GL_COLOR_BUFFER_BIT);
    eglSwapBuffers(state->display, state->surface);
 
    mutex_lock(&vsync_cond_mutex);
@@ -595,37 +548,32 @@ void CircleExit(void)
    mutex_unlock(&vsync_cond_mutex);
    vc_dispmanx_vsync_callback(state->dispman_display, NULL, NULL);
 
-   eglDestroySurface( state->display, state->surface );
+   eglDestroySurface(state->display, state->surface);
 
-   dispman_update = vc_dispmanx_update_start( 0 );
-   s = vc_dispmanx_element_remove(dispman_update, state->dispman_element);
-   assert(s == 0);
-   vc_dispmanx_update_submit_sync( dispman_update );
-   s = vc_dispmanx_display_close(state->dispman_display);
-   assert (s == 0);
+   DISPMANX_UPDATE_HANDLE_T dispman_update = vc_dispmanx_update_start(0);
+   int result = vc_dispmanx_element_remove(dispman_update, state->dispman_element);
+   assert(result == 0);
+   vc_dispmanx_update_submit_sync(dispman_update);
+   result = vc_dispmanx_display_close(state->dispman_display);
+   assert (result == 0);
 
-   // Release OpenGL resources
+   // release OpenGL resources
    eglMakeCurrent( state->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT );
    eglDestroyContext( state->display, state->context );
    eglTerminate( state->display );
 
-   printk("Image closed\n");
+   printk("vc4 terminated!\n");
 }
 
 void CircleSwapBuffers(void)
 {
+    eglSwapBuffers(state->display, state->surface);
+    //check();
 
-    //   glFlush();
-    //   glFinish();
-
-       //SDL_GL_SwapWindow(window);
-       eglSwapBuffers(state->display, state->surface);
-       //check();
-
-       // wait for vsync
-       mutex_lock(&vsync_cond_mutex);
-       wait_for_completion(&vsync_cond);
-       mutex_unlock(&vsync_cond_mutex);
+    // wait for vsync
+    mutex_lock(&vsync_cond_mutex);
+    wait_for_completion(&vsync_cond);
+    mutex_unlock(&vsync_cond_mutex);
 }
 
 bool CircleTerminate(void)
