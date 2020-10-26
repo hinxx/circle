@@ -7,11 +7,11 @@
 //  [X] Platform: Mouse cursor shape and visibility. Disable with 'io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange'.
 //  [X] Platform: Clipboard support.
 //  [X] Platform: Keyboard arrays indexed using SDL_SCANCODE_* codes, e.g. ImGui::IsKeyPressed(SDL_SCANCODE_SPACE).
-//  [X] Platform: Gamepad support. Enabled with 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad'.
 // Missing features:
+//  [X] Platform: Gamepad support. Enabled with 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad'.
 //  [ ] Platform: ???
 
-// You can copy and use unmodified imgui_impl_* files in your project. See main.cpp for an example of using this.
+// You can copy and use unmodified imgui_impl_* files in your project. See sample/demo.cpp for an example of using this.
 // If you are new to dear imgui, read the documentation at the top of imgui.cpp and at https://github.com/ocornut/imgui.
 
 // CHANGELOG
@@ -23,11 +23,11 @@
 
 // VideoCore IV
 #include "bcm_host.h"
-
+// OGLES
 #include "GLES2/gl2.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
-
+// Circle
 #include <linux/spinlock.h>
 #include <linux/completion.h>
 #include <circle/string.h>
@@ -35,13 +35,6 @@
 #include <circle/input/mouse.h>
 #include <circle/usb/usbkeyboard.h>
 #include <circle/devicenameservice.h>
-
-// Data
-//static SDL_Window*  g_Window = NULL;
-static unsigned g_Ticks = 0;
-//static bool         g_MousePressed[3] = { false, false, false };
-//static SDL_Cursor*  g_MouseCursors[ImGuiMouseCursor_COUNT] = {};
-//static char*        g_ClipboardTextData = NULL;
 
 typedef struct
 {
@@ -54,30 +47,16 @@ typedef struct
    EGLSurface surface;
    EGLContext context;
 
-//   GLuint verbose;
-//   GLuint vshader;
-//   GLuint fshader;
-//   GLuint mshader;
-//   GLuint program;
-//   GLuint program2;
-//   GLuint tex_fb;
-//   GLuint tex;
-//   GLuint buf;
-// julia attribs
-//   GLuint unif_color, attr_vertex, unif_scale, unif_offset, unif_tex, unif_centre;
-// mandelbrot attribs
-//   GLuint attr_vertex2, unif_scale2, unif_offset2, unif_centre2;
-
-//   bool terminate;
 } CUBE_STATE_T;
 
 static CUBE_STATE_T _state, *state=&_state;
 
+static unsigned g_Ticks = 0;
+static bool g_terminate = false;
 static struct mutex vsync_cond_mutex;
 static struct completion vsync_cond;
 
 static DEFINE_SPINLOCK (mouse_lock);
-//static int mouse_buttons = 0, mouse_dx = 0, mouse_dy = 0;
 static unsigned mouse_x = 0;
 static unsigned mouse_y = 0;
 static bool g_MousePressed[3] = { false, false, false };
@@ -88,18 +67,14 @@ static unsigned char g_cookedKeys[2] = {0};
 static unsigned char g_rawKeys[6] = {0};
 static unsigned char g_modifierKeys = 0;
 static unsigned char g_rawKeysLast[6] = {0};
-
 static CString g_ClipboardTextData;
-
-static bool g_terminate = false;
 
 #define check() assert(glGetError() == 0)
 
-void mouse_event_callback(TMouseEvent Event, unsigned nButtons, unsigned nPosX, unsigned nPosY, int nWheelMove)
+static void mouseEventHandler(TMouseEvent Event, unsigned nButtons, unsigned nPosX, unsigned nPosY, int nWheelMove)
 {
-//    printk("mouse %4d %4d buttons %d\n", nPosX, nPosY, nButtons);
+    spin_lock(&mouse_lock);
 
-    spin_lock (&mouse_lock);
     switch (Event)
 	{
 	case MouseEventMouseMove:
@@ -133,79 +108,53 @@ void mouse_event_callback(TMouseEvent Event, unsigned nButtons, unsigned nPosX, 
 	default:
 		break;
 	}
-    spin_unlock (&mouse_lock);
+    spin_unlock(&mouse_lock);
 }
 
-void KeyPressedHandler (const char *pString) {
-//    assert (s_pThis != 0);
-//	s_pThis->m_Screen.Write (pString, strlen (pString));
-
+static void keyPressedHandler(const char *pString)
+{
     // expect a single character long string, NUL terminated!
     // see CKeyMap::GetString()
     assert(g_cookedKeys[1] == 0);
 
-    spin_lock (&keyboard_lock);
+    spin_lock(&keyboard_lock);
     g_cookedKeys[0] = *pString;
-    spin_unlock (&keyboard_lock);
-#if DEBUG
-    CString Message;
-	Message.Format ("Text input %s", pString);
-    printk(Message);
-#endif
+    spin_unlock(&keyboard_lock);
 }
 
-void KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned char RawKeys[6]) {
-//    assert (s_pThis != 0);
-
-    spin_lock (&keyboard_lock);
+static void keyStatusHandlerRaw(unsigned char ucModifiers, const unsigned char RawKeys[6])
+{
+    spin_lock(&keyboard_lock);
     g_modifierKeys = ucModifiers;
     for (unsigned i = 0; i < 6; i++)
 	{
         g_rawKeys[i] = RawKeys[i];
     }
-    spin_unlock (&keyboard_lock);
-
-#if DEBUG
-	CString Message;
-	Message.Format ("Key status (modifiers %02X)", (unsigned) ucModifiers);
-
-	for (unsigned i = 0; i < 6; i++)
-	{
-		if (RawKeys[i] != 0)
-		{
-			CString KeyCode;
-			KeyCode.Format (" %02X", (unsigned) RawKeys[i]);
-
-			Message.Append (KeyCode);
-		}
-	}
-	printk(Message);
-#endif
+    spin_unlock(&keyboard_lock);
 }
 
-void ShutdownHandler (void) {
-//    assert (s_pThis != 0);
-//	s_pThis->m_ShutdownMode = ShutdownReboot;
+static void shutdownHandler (void)
+{
     g_terminate = true;
 }
 
-static const char* ImGui_ImplCircle_GetClipboardText(void*)
+static const char* ImGui_ImplCircle_GetClipboardText(void *)
 {
     const char *text = g_ClipboardTextData;
-    if (!text) {
+    if (!text)
+    {
         text = "";
     }
-    //printk("GET clipboard content: '%s'", (const char *)text, strlen(text));
     return text;
 }
 
-static void ImGui_ImplCircle_SetClipboardText(void*, const char* text)
+static void ImGui_ImplCircle_SetClipboardText(void *, const char *text)
 {
-    if (!text) {
+    if (!text)
+    {
         text = "";
     }
     g_ClipboardTextData = text;
-    //printk("SET clipboard content: '%s'", (const char *)g_clipboard, g_clipboard.GetLength());
 }
 
 // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
@@ -213,7 +162,7 @@ static void ImGui_ImplCircle_SetClipboardText(void*, const char* text)
 // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application.
 // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 // If you have multiple SDL events and some of them are not meant to be used by dear imgui, you may need to filter events based on their windowID field.
-bool ImGui_ImplCircle_ProcessEvent(/*const SDL_Event* event*/)
+bool ImGui_ImplCircle_ProcessEvent(void)
 {
     ImGuiIO& io = ImGui::GetIO();
 
@@ -238,9 +187,11 @@ bool ImGui_ImplCircle_ProcessEvent(/*const SDL_Event* event*/)
 
    // signal key release
    // if any of the keys are stil pressed in this frame, they will be set in the key press loop below
-   for (unsigned i = 0; i < 6; i++) {
+   for (unsigned i = 0; i < 6; i++)
+   {
        int key = g_rawKeysLast[i];
-       if (key == KeyNone) {
+       if (key == KeyNone)
+       {
            continue;
        }
        io.KeysDown[key] = false;
@@ -248,9 +199,11 @@ bool ImGui_ImplCircle_ProcessEvent(/*const SDL_Event* event*/)
     }
 
    // signal key press
-   for (unsigned i = 0; i < 6; i++) {
+   for (unsigned i = 0; i < 6; i++)
+   {
        int key = g_rawKeys[i];
-       if (key == KeyNone) {
+       if (key == KeyNone)
+       {
            continue;
        }
        IM_ASSERT(key >= 0 && key < IM_ARRAYSIZE(io.KeysDown));
@@ -265,7 +218,8 @@ bool ImGui_ImplCircle_ProcessEvent(/*const SDL_Event* event*/)
    io.KeySuper = ((g_modifierKeys & KEY_LWIN_MASK) != 0) || ((g_modifierKeys & KEY_RWIN_MASK) != 0);
 
    // set input text if any
-   if (g_cookedKeys[0] != KeyNone) {
+   if (g_cookedKeys[0] != KeyNone)
+   {
        io.AddInputCharacter(g_cookedKeys[0]);
        g_cookedKeys[0] = KeyNone;
    }
@@ -275,25 +229,25 @@ bool ImGui_ImplCircle_ProcessEvent(/*const SDL_Event* event*/)
     return true;
 }
 
-bool ImGui_ImplCircle_Init(/*SDL_Window* window, */void* sdl_gl_context)
+bool ImGui_ImplCircle_Init(void)
 {
-    // Setup backend capabilities flags
+    // setup backend capabilities flags
     ImGuiIO& io = ImGui::GetIO();
-    //io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;       // We can honor GetMouseCursor() values (optional)
-    //io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;        // We can honor io.WantSetMousePos requests (optional, rarely used)
+    // we can honor GetMouseCursor() values (optional)
+    //io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
+    // we can honor io.WantSetMousePos requests (optional, rarely used)
+    //io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
     io.BackendPlatformName = "imgui_impl_circle";
 
-    // Setup display size (only at init, no window resizing)
-    int w, h;
-    int display_w, display_h;
-    w = state->screen_width;
-    h = state->screen_height;
-    display_w = state->screen_width;
-    display_h = state->screen_height;
+    // setup display size (only at init, no window resizing)
+    int w = state->screen_width;
+    int h = state->screen_height;
+    int display_w = state->screen_width;
+    int display_h = state->screen_height;
     io.DisplaySize = ImVec2((float)w, (float)h);
     io.DisplayFramebufferScale = ImVec2((float)display_w / w, (float)display_h / h);
 
-    // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
+    // keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
     io.KeyMap[ImGuiKey_Tab] = 0x2B;
     io.KeyMap[ImGuiKey_LeftArrow] = 0x50;
     io.KeyMap[ImGuiKey_RightArrow] = 0x4F;
@@ -326,23 +280,23 @@ bool ImGui_ImplCircle_Init(/*SDL_Window* window, */void* sdl_gl_context)
 
     CMouseDevice *pMouse = (CMouseDevice *) CDeviceNameService::Get()->GetDevice("mouse1", FALSE);
     assert(pMouse != NULL);
-    if (! pMouse->Setup(state->screen_width, state->screen_height)) {
+    if (! pMouse->Setup(state->screen_width, state->screen_height))
+    {
         printk("Cannot setup mouse\n");
     }
-    pMouse->SetCursor(state->screen_width/2, state->screen_height/2);
-    // XXX: consider using ImGui cursor instead of native one!
-    //   pMouse->ShowCursor(TRUE);
-    pMouse->RegisterEventHandler(mouse_event_callback);
+    // using ImGui cursor instead of native one!
+    pMouse->SetCursor(0, 0);
+    pMouse->RegisterEventHandler(mouseEventHandler);
 
     CUSBKeyboardDevice *pKeyboard = (CUSBKeyboardDevice *) CDeviceNameService::Get()->GetDevice ("ukbd1", FALSE);
     assert(pKeyboard != NULL);
-    pKeyboard->RegisterShutdownHandler(ShutdownHandler);
+    pKeyboard->RegisterShutdownHandler(shutdownHandler);
     // NOTE:
     // change CUSBKeyboardDevice::ReportHandler() to not return if m_pKeyStatusHandlerRaw
     // is registered to have both KeyPressedHandler and KeyStatusHandlerRaw executed!
     // one can deliver keys to UI and another to serial console
-    pKeyboard->RegisterKeyPressedHandler(KeyPressedHandler);
-    pKeyboard->RegisterKeyStatusHandlerRaw(KeyStatusHandlerRaw);
+    pKeyboard->RegisterKeyPressedHandler(keyPressedHandler);
+    pKeyboard->RegisterKeyStatusHandlerRaw(keyStatusHandlerRaw);
 
     return true;
 }
@@ -367,7 +321,10 @@ void ImGui_ImplCircle_NewFrame(void)
     g_Ticks = ticks;
 }
 
-
+//
+// following functions would better fit into some other file in order to keep
+// ImGui implementation clean
+//
 static void printConfigInfo(int n, EGLDisplay display, EGLConfig *config)
 {
 
@@ -405,7 +362,7 @@ void CircleInit(void)
     bcm_host_init();
 
     // clear application state
-    memset( state, 0, sizeof( *state ) );
+    memset(state, 0, sizeof(*state));
 
    int32_t success = 0;
    EGLBoolean result;
@@ -445,15 +402,14 @@ void CircleInit(void)
    check();
 
    EGLint num_configs;
-   EGLConfig *configs;
-
    eglGetConfigs(state->display, NULL, 0, &num_configs);
    printk("EGL has %d configs\n", num_configs);
-   configs = (EGLConfig *)calloc(num_configs, sizeof *configs);
-   eglGetConfigs(state->display, configs, num_configs, &num_configs);
+   //EGLConfig *configs = (EGLConfig *)calloc(num_configs, sizeof *configs);
+   //eglGetConfigs(state->display, configs, num_configs, &num_configs);
    //for (int i = 0; i < num_configs; i++) {
    //     printConfigInfo(i, state->display, &configs[i]);
    //}
+   //free(configs);
 
    // get first EGL frame buffer configuration
    result = eglChooseConfig(state->display, attribute_list, &config, 1, &num_config);

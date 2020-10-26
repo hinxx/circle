@@ -922,7 +922,7 @@ int _main ()
 //   // draw imgui cursor (do not have to use circle pMouse->ShowCursor(TRUE);)
 //   io.MouseDrawCursor = true;
 
-   ImGui_ImplCircle_Init(NULL);
+   ImGui_ImplCircle_Init();
 
    const char* glsl_version = "#version 100";
    ImGui_ImplOpenGL3_Init(glsl_version);

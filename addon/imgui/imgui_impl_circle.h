@@ -6,25 +6,22 @@
 //  [X] Platform: Mouse cursor shape and visibility. Disable with 'io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange'.
 //  [X] Platform: Clipboard support.
 //  [X] Platform: Keyboard arrays indexed using SDL_SCANCODE_* codes, e.g. ImGui::IsKeyPressed(SDL_SCANCODE_SPACE).
-//  [X] Platform: Gamepad support. Enabled with 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad'.
 // Missing features:
+//  [ ] Platform: Gamepad support. Enabled with 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad'.
 //  [ ] Platform: ???
 
-// You can copy and use unmodified imgui_impl_* files in your project. See main.cpp for an example of using this.
+// You can copy and use unmodified imgui_impl_* files in your project. See sample/demo.cpp for an example of using this.
 // If you are new to dear imgui, read the documentation at the top of imgui.cpp and at https://github.com/ocornut/imgui.
 
 #pragma once
 #include "imgui.h"      // IMGUI_IMPL_API
-
-//struct SDL_Window;
-//typedef union SDL_Event SDL_Event;
 
 void CircleInit(void);
 void CircleExit(void);
 bool CircleTerminate(void);
 void CircleSwapBuffers(void);
 
-IMGUI_IMPL_API bool     ImGui_ImplCircle_Init(/*SDL_Window* window, */void* sdl_gl_context);
+IMGUI_IMPL_API bool     ImGui_ImplCircle_Init(void);
 IMGUI_IMPL_API void     ImGui_ImplCircle_Shutdown(void);
 IMGUI_IMPL_API void     ImGui_ImplCircle_NewFrame(void);
-IMGUI_IMPL_API bool     ImGui_ImplCircle_ProcessEvent(/*const SDL_Event* event*/);
+IMGUI_IMPL_API bool     ImGui_ImplCircle_ProcessEvent(void);
