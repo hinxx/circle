@@ -1,0 +1,23 @@
+README
+
+This app will initialize the ILI9325D 240x320 display in 8-bit mode and display some colors.
+
+The pinout is as follows:
+
+nRD		+3.3V
+nWR		GPIO1
+nCS		GPIO22
+RST		GPIO23
+RS		GPIO5
+DB8		GPIO21
+DB9		GPIO20
+DB10	GPIO26
+DB11	GPIO16
+DB12	GPIO19
+DB13	GPIO13
+DB14	GPIO12
+DB15	GPIO6
+
+The sample was tested against ITDB02-2.4E GLCD + touchscreen module.
+
+UTFT Arduino Library was used for reference (http://www.rinkydinkelectronics.com/library.php?id=51).

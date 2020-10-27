@@ -1,0 +1,19 @@
+README
+
+This app will obtain pressure and location of the touch from a TSC2046 (or pin compatible XPT2046) IC.
+Data bytes are transferred via the SPI0. Received pressure (Z) and touch coordinates (X, Y) are dumped
+to serial console. The values are not normalized to display size.
+
+SPI0 master is used.
+
+The pinout is as follows:
+
+SCLK	GPIO11
+MOSI	GPIO10
+MISO	GPIO9
+CE0		GPIO8
+IRQ		GPIO25 (unused)
+
+The sample was tested against ITDB02-2.4E GLCD + touchscreen module.
+
+XPT2046 Touchscreen Arduino Library was used for reference (https://github.com/PaulStoffregen/XPT2046_Touchscreen).
