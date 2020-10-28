@@ -89,8 +89,8 @@ int _main ()
             ImGui::Text("counter = %d", counter);
             ImGui::Text("loop iter = %d", iter++);
             ImGui::Text("mouse X %4d Y %4d", (int)io.MousePos.x, (int)io.MousePos.y);
-            ImGui::Text("mouse buttons = LEFT %d RIGHT %d MIDDLE %d", io.MouseDown[0], io.MouseDown[1], io.MouseDown[2]);
-
+            ImGui::Text("mouse buttons = LEFT %d RIGHT %d MIDDLE %d SIDE1 %d SIDE2 %d",
+                        io.MouseDown[0], io.MouseDown[1], io.MouseDown[2], io.MouseDown[3], io.MouseDown[4]);
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
             // Terminate on mouse click ..

@@ -59,7 +59,7 @@ static struct completion vsync_cond;
 static DEFINE_SPINLOCK (mouse_lock);
 static unsigned mouse_x = 0;
 static unsigned mouse_y = 0;
-static bool g_MousePressed[3] = { false, false, false };
+static bool g_MousePressed[5] = { false, false, false, false, false };
 static int mouse_wheel = 0;
 
 static DEFINE_SPINLOCK (keyboard_lock);
@@ -90,6 +90,10 @@ static void mouseEventHandler(TMouseEvent Event, unsigned nButtons, unsigned nPo
             g_MousePressed[1] = true;
         if (nButtons & MOUSE_BUTTON_MIDDLE)
             g_MousePressed[2] = true;
+        if (nButtons & MOUSE_BUTTON_SIDE1)
+            g_MousePressed[3] = true;
+        if (nButtons & MOUSE_BUTTON_SIDE2)
+            g_MousePressed[4] = true;
         break;
 
     case MouseEventMouseUp:
@@ -99,6 +103,10 @@ static void mouseEventHandler(TMouseEvent Event, unsigned nButtons, unsigned nPo
             g_MousePressed[1] = false;
         if (nButtons & MOUSE_BUTTON_MIDDLE)
             g_MousePressed[2] = false;
+        if (nButtons & MOUSE_BUTTON_SIDE1)
+            g_MousePressed[3] = false;
+        if (nButtons & MOUSE_BUTTON_SIDE2)
+            g_MousePressed[4] = false;
         break;
 
     case MouseEventMouseWheel:
@@ -176,6 +184,8 @@ bool ImGui_ImplCircle_ProcessEvent(void)
    io.MouseDown[0] = g_MousePressed[0];
    io.MouseDown[1] = g_MousePressed[1];
    io.MouseDown[2] = g_MousePressed[2];
+   io.MouseDown[3] = g_MousePressed[3];
+   io.MouseDown[4] = g_MousePressed[4];
    io.MouseWheel += mouse_wheel;
    // TODO
    // io.MouseWheelH += mouse_wheel;
