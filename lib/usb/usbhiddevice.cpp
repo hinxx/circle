@@ -31,7 +31,8 @@ CUSBHIDDevice::CUSBHIDDevice (CUSBFunction *pFunction, unsigned nMaxReportSize)
 	m_pReportEndpoint (0),
 	m_pEndpointOut (0),
 	m_pURB (0),
-	m_pReportBuffer (0)
+	m_pReportBuffer (0),
+	m_bShutdown (FALSE)
 {
 	if (m_nMaxReportSize > 0)
 	{
@@ -42,6 +43,9 @@ CUSBHIDDevice::CUSBHIDDevice (CUSBFunction *pFunction, unsigned nMaxReportSize)
 
 CUSBHIDDevice::~CUSBHIDDevice (void)
 {
+	delete m_pURB;
+	m_pURB = 0;
+
 	delete [] m_pReportBuffer;
 	m_pReportBuffer = 0;
 
@@ -110,10 +114,11 @@ boolean CUSBHIDDevice::Configure (unsigned nMaxReportSize)
 	{
 		if (GetHost ()->ControlMessage (GetEndpoint0 (),
 						REQUEST_OUT | REQUEST_CLASS | REQUEST_TO_INTERFACE,
-						SET_PROTOCOL, BOOT_PROTOCOL,
+						SET_PROTOCOL,   GetInterfaceProtocol () == 2
+							      ? REPORT_PROTOCOL : BOOT_PROTOCOL,
 						GetInterfaceNumber (), 0, 0) < 0)
 		{
-			CLogger::Get ()->Write (FromUSBHID, LogError, "Cannot set boot protocol");
+			CLogger::Get ()->Write (FromUSBHID, LogError, "Cannot set protocol");
 
 			return FALSE;
 		}
@@ -130,6 +135,13 @@ boolean CUSBHIDDevice::Configure (unsigned nMaxReportSize)
 	assert (m_pReportBuffer != 0);
 
 	return TRUE;
+}
+
+boolean CUSBHIDDevice::ShutdownFunction (void)
+{
+	m_bShutdown = TRUE;
+
+	return m_pURB == 0;
 }
 
 boolean CUSBHIDDevice::SendToEndpointOut (const void *pBuffer, unsigned nBufSize, unsigned nTimeoutMs)
@@ -214,7 +226,7 @@ void CUSBHIDDevice::CompletionRoutine (CUSBRequest *pURB)
 	assert (pURB != 0);
 	assert (m_pURB == pURB);
 
-	boolean bRestart = TRUE;
+	boolean bRestart = !m_bShutdown;
 
 	if (pURB->GetStatus () != 0)
 	{
