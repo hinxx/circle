@@ -16,11 +16,11 @@
 #define SPI_MASTER_DEVICE	0		// 0, 4, 5, 6 on Raspberry Pi 4; 0 otherwise
 
 #define SPI_CLOCK_SPEED		100000		// Hz
-#define SPI_CPOL    		0
-#define SPI_CPHA        	0
+#define SPI_CPOL			0
+#define SPI_CPHA			0
 
 #define SPI_CHIP_SELECT		0		// 0 or 1, or 2 (for SPI1)
-#define SPI_CE0             8		// GPIO8 (CE0# of SPI0)
+#define SPI_CE0				8		// GPIO8 (CE0# of SPI0)
 
 static const char FromMfrc522[] = "mfrc522";
 
@@ -57,15 +57,13 @@ MFRC522::MFRC522(	byte resetPowerDownPin	///< Arduino pin connected to MFRC522's
 MFRC522::MFRC522(	byte chipSelectPin,		///< Arduino pin connected to MFRC522's SPI slave select input (Pin 24, NSS, active low)
 					byte resetPowerDownPin	///< Arduino pin connected to MFRC522's reset and power down input (Pin 6, NRSTPD, active low). If there is no connection from the CPU to NRSTPD, set this to UINT8_MAX. In this case, only soft reset will be used in PCD_Init().
 #ifdef __circle__
-				)
-    : m_SPIMaster(SPI_CLOCK_SPEED, SPI_CPOL, SPI_CPHA, SPI_MASTER_DEVICE)
-{
-    (void)chipSelectPin;
-    if (resetPowerDownPin != UINT8_MAX) {
-        m_RST.AssignPin(resetPowerDownPin);
-        m_RST.SetMode(GPIOModeOutput, TRUE);
-        m_RST.Write(HIGH);
-    }
+				) : m_SPIMaster(SPI_CLOCK_SPEED, SPI_CPOL, SPI_CPHA, SPI_MASTER_DEVICE) {
+	(void)chipSelectPin;
+	if (resetPowerDownPin != UINT8_MAX) {
+		m_RST.AssignPin(resetPowerDownPin);
+		m_RST.SetMode(GPIOModeOutput, TRUE);
+		m_RST.Write(HIGH);
+	}
 #else
 				) {
 	_chipSelectPin = chipSelectPin;
@@ -85,11 +83,11 @@ void MFRC522::PCD_WriteRegister(	PCD_Register reg,	///< The register to write to
 									byte value			///< The value to write.
 								) {
 #ifdef __circle__
-    byte txdata[2] = {reg, value};
-    // CLogger::Get()->Write(FromMfrc522, LogDebug, "WD %2X: %2X %2X", reg, txdata[0], txdata[1]);
-    if (m_SPIMaster.Write(SPI_CHIP_SELECT, txdata, 2) != 2) {
-        CLogger::Get()->Write(FromMfrc522, LogPanic, "SPI write error");
-    }
+	byte txdata[2] = {reg, value};
+	// CLogger::Get()->Write(FromMfrc522, LogDebug, "WD %2X: %2X %2X", reg, txdata[0], txdata[1]);
+	if (m_SPIMaster.Write(SPI_CHIP_SELECT, txdata, 2) != 2) {
+		CLogger::Get()->Write(FromMfrc522, LogPanic, "SPI write error");
+	}
 #else
 	SPI.beginTransaction(SPISettings(MFRC522_SPICLOCK, MSBFIRST, SPI_MODE0));	// Set the settings to work with SPI bus
 	digitalWrite(_chipSelectPin, LOW);		// Select slave
@@ -109,17 +107,17 @@ void MFRC522::PCD_WriteRegister(	PCD_Register reg,	///< The register to write to
 									byte *values		///< The values to write. Byte array.
 								) {
 #ifdef __circle__
-    byte data[257];
-    data[0] = reg;
-    for (unsigned i = 0; i < count; i++) {
-        data[i + 1] = *(values + i);
-    }
-    int len = count + 1;
-    // CLogger::Get()->Write(FromMfrc522, LogDebug, "WD %2X: array %d", reg, count);
-    // debug_hexdump(data, len, FromMfrc522);
-    if (m_SPIMaster.Write(SPI_CHIP_SELECT, data, len) != len) {
-        CLogger::Get()->Write(FromMfrc522, LogPanic, "SPI write error");
-    }
+	byte data[257];
+	data[0] = reg;
+	for (unsigned i = 0; i < count; i++) {
+		data[i + 1] = *(values + i);
+	}
+	int len = count + 1;
+	// CLogger::Get()->Write(FromMfrc522, LogDebug, "WD %2X: array %d", reg, count);
+	// debug_hexdump(data, len, FromMfrc522);
+	if (m_SPIMaster.Write(SPI_CHIP_SELECT, data, len) != len) {
+		CLogger::Get()->Write(FromMfrc522, LogPanic, "SPI write error");
+	}
 #else
 	SPI.beginTransaction(SPISettings(MFRC522_SPICLOCK, MSBFIRST, SPI_MODE0));	// Set the settings to work with SPI bus
 	digitalWrite(_chipSelectPin, LOW);		// Select slave
@@ -139,14 +137,14 @@ void MFRC522::PCD_WriteRegister(	PCD_Register reg,	///< The register to write to
 byte MFRC522::PCD_ReadRegister(	PCD_Register reg	///< The register to read from. One of the PCD_Register enums.
 								) {
 #ifdef __circle__
-    byte txdata[2] = { 0 };
-    txdata[0] = reg | 0x80;
-    byte rxdata[2] = { 0 };
-    if (m_SPIMaster.WriteRead(SPI_CHIP_SELECT, txdata, rxdata, 2) != 2) {
-        CLogger::Get()->Write(FromMfrc522, LogPanic, "SPI write error");
-    }
-    //CLogger::Get()->Write(FromMfrc522, LogDebug, "RD %2X: %2X %2X", reg, rxdata[0], rxdata[1]);
-    return rxdata[1];
+	byte txdata[2] = { 0 };
+	txdata[0] = reg | 0x80;
+	byte rxdata[2] = { 0 };
+	if (m_SPIMaster.WriteRead(SPI_CHIP_SELECT, txdata, rxdata, 2) != 2) {
+		CLogger::Get()->Write(FromMfrc522, LogPanic, "SPI write error");
+	}
+	//CLogger::Get()->Write(FromMfrc522, LogDebug, "RD %2X: %2X %2X", reg, rxdata[0], rxdata[1]);
+	return rxdata[1];
 #else
 	byte value;
 	SPI.beginTransaction(SPISettings(MFRC522_SPICLOCK, MSBFIRST, SPI_MODE0));	// Set the settings to work with SPI bus
@@ -172,7 +170,7 @@ void MFRC522::PCD_ReadRegister(	PCD_Register reg,	///< The register to read from
 		return;
 	}
 #ifdef __circle__
-    byte address = 0x80 | reg;				// MSB == 1 is for reading. LSB is not used in address. Datasheet section 8.1.2.3.
+	byte address = 0x80 | reg;				// MSB == 1 is for reading. LSB is not used in address. Datasheet section 8.1.2.3.
 	byte index = 0;							// Index in values array.
 	count--;								// One read is performed outside of the loop
 	m_SPIMaster.Write(SPI_CHIP_SELECT, &address, 1);					// Tell MFRC522 which address we want to read
@@ -181,16 +179,16 @@ void MFRC522::PCD_ReadRegister(	PCD_Register reg,	///< The register to read from
 		byte mask = (0xFF << rxAlign) & 0xFF;
 		// Read value and tell that we want to read the same address again.
 		byte value = 0xFF;
-        m_SPIMaster.Read(SPI_CHIP_SELECT, &value, 1);
+		m_SPIMaster.Read(SPI_CHIP_SELECT, &value, 1);
 		// Apply mask to both current value of values[0] and the new data in value.
 		values[0] = (values[0] & ~mask) | (value & mask);
 		index++;
 	}
 	while (index < count) {
-        m_SPIMaster.WriteRead(SPI_CHIP_SELECT, &address, &values[index], 1);
+		m_SPIMaster.WriteRead(SPI_CHIP_SELECT, &address, &values[index], 1);
 		index++;
 	}
-    m_SPIMaster.Read(SPI_CHIP_SELECT, &values[index], 1);
+	m_SPIMaster.Read(SPI_CHIP_SELECT, &values[index], 1);
 #else
 	//Serial.print(F("Reading ")); 	Serial.print(count); Serial.println(F(" bytes from register."));
 	byte address = 0x80 | reg;				// MSB == 1 is for reading. LSB is not used in address. Datasheet section 8.1.2.3.
@@ -287,21 +285,21 @@ void MFRC522::PCD_Init() {
 	bool hardReset = false;
 
 #ifdef __circle__
-    if (! m_SPIMaster.Initialize()) {
-        CLogger::Get()->Write(FromMfrc522, LogPanic, "SPI init error");
-    }
-    CLogger::Get()->Write(FromMfrc522, LogDebug, "SPI init done!");
+	if (! m_SPIMaster.Initialize()) {
+		CLogger::Get()->Write(FromMfrc522, LogPanic, "SPI init error");
+	}
+	CLogger::Get()->Write(FromMfrc522, LogDebug, "SPI init done!");
 
-    // FIXME: The RST pin has to be defined at the moment!
-//    if (m_RST.Pin() != GPIO_PINS) {
-        CLogger::Get()->Write(FromMfrc522, LogDebug, "doing hard reset ..");
-        m_RST.Write(HIGH);
-        m_RST.Write(LOW);
-        CTimer::SimpleMsDelay(2);
-        m_RST.Write(HIGH);
-        CTimer::SimpleMsDelay(50);
-        hardReset = true;
-//    }
+	// FIXME: The RST pin has to be defined at the moment!
+	//	if (m_RST.Pin() != GPIO_PINS) {
+		CLogger::Get()->Write(FromMfrc522, LogDebug, "doing hard reset ..");
+		m_RST.Write(HIGH);
+		m_RST.Write(LOW);
+		CTimer::SimpleMsDelay(2);
+		m_RST.Write(HIGH);
+		CTimer::SimpleMsDelay(50);
+		hardReset = true;
+	// 	}
 #else
 	// Set the chipSelectPin as digital output, do not select the slave yet
 	pinMode(_chipSelectPin, OUTPUT);
@@ -362,12 +360,12 @@ void MFRC522::PCD_Init(	byte chipSelectPin,		///< Arduino pin connected to MFRC5
 						byte resetPowerDownPin	///< Arduino pin connected to MFRC522's reset and power down input (Pin 6, NRSTPD, active low)
 					) {
 #ifdef __circle__
-    (void)chipSelectPin;
-    if (resetPowerDownPin != UINT8_MAX) {
-        m_RST.AssignPin(resetPowerDownPin);
-        m_RST.SetMode(GPIOModeOutput, TRUE);
-        m_RST.Write(HIGH);
-    }
+	(void)chipSelectPin;
+	if (resetPowerDownPin != UINT8_MAX) {
+		m_RST.AssignPin(resetPowerDownPin);
+		m_RST.SetMode(GPIOModeOutput, TRUE);
+		m_RST.Write(HIGH);
+	}
 #else
 	_chipSelectPin = chipSelectPin;
 	_resetPowerDownPin = resetPowerDownPin; 
@@ -1470,8 +1468,8 @@ void MFRC522::PCD_DumpVersionToSerial() {
 	// Get the MFRC522 firmware version
 	byte v = PCD_ReadRegister(VersionReg);
 #ifdef __circle__
-    // Lookup which version
-    const char *str = 0;
+	// Lookup which version
+	const char *str = 0;
 	switch(v) {
 		case 0x88: str = " = (clone)";  break;
 		case 0x90: str = " = v0.0";     break;
@@ -1480,7 +1478,7 @@ void MFRC522::PCD_DumpVersionToSerial() {
 		case 0x12: str = " = counterfeit chip";     break;
 		default:   str = " = (unknown)";
 	}
-    CLogger::Get ()->Write(FromMfrc522, LogNotice, "Firmware Version: 0x%X%s", v, str);
+	CLogger::Get ()->Write(FromMfrc522, LogNotice, "Firmware Version: 0x%X%s", v, str);
 	// When 0x00 or 0xFF is returned, communication probably failed
 	if ((v == 0x00) || (v == 0xFF))
 		CLogger::Get ()->Write(FromMfrc522, LogWarning, "WARNING: Communication failure, is the MFRC522 properly connected?");
@@ -1502,7 +1500,6 @@ void MFRC522::PCD_DumpVersionToSerial() {
 #endif
 } // End PCD_DumpVersionToSerial()
 
-#if TODO
 /**
  * Dumps debug info about the selected PICC to Serial.
  * On success the PICC is halted after dumping the data.
@@ -1537,7 +1534,11 @@ void MFRC522::PICC_DumpToSerial(Uid *uid	///< Pointer to Uid struct returned fro
 		case PICC_TYPE_ISO_18092:
 		case PICC_TYPE_MIFARE_PLUS:
 		case PICC_TYPE_TNP3XXX:
+#ifdef __circle__
+			CLogger::Get ()->Write(FromMfrc522, LogWarning, "Dumping memory contents not implemented for that PICC type.");
+#else
 			Serial.println(F("Dumping memory contents not implemented for that PICC type."));
+#endif
 			break;
 			
 		case PICC_TYPE_UNKNOWN:
@@ -1546,10 +1547,11 @@ void MFRC522::PICC_DumpToSerial(Uid *uid	///< Pointer to Uid struct returned fro
 			break; // No memory dump here
 	}
 	
+#ifndef __circle__
 	Serial.println();
+#endif
 	PICC_HaltA(); // Already done if it was a MIFARE Classic PICC.
 } // End PICC_DumpToSerial()
-#endif
 
 /**
  * Dumps card info (UID,SAK,Type) about the selected PICC to Serial.
@@ -1557,14 +1559,14 @@ void MFRC522::PICC_DumpToSerial(Uid *uid	///< Pointer to Uid struct returned fro
 void MFRC522::PICC_DumpDetailsToSerial(Uid *uid	///< Pointer to Uid struct returned from a successful PICC_Select().
 									) {
 #ifdef __circle__
-    // UID
-    CLogger::Get()->Write(FromMfrc522, LogNotice, "Card UID:");
-    debug_hexdump(uid->uidByte, uid->size, FromMfrc522);
-    // SAK
-    CLogger::Get()->Write(FromMfrc522, LogNotice, "Card SAK: %X", uid->sak);
-    // (suggested) PICC type
+	// UID
+	CLogger::Get()->Write(FromMfrc522, LogDebug, "Card UID:");
+	debug_hexdump(uid->uidByte, uid->size, FromMfrc522);
+	// SAK
+	CLogger::Get()->Write(FromMfrc522, LogDebug, "Card SAK: %X", uid->sak);
+	// (suggested) PICC type
 	PICC_Type piccType = PICC_GetType(uid->sak);
-	CLogger::Get()->Write(FromMfrc522, LogNotice, "PICC type: %s", PICC_GetTypeName(piccType));
+	CLogger::Get()->Write(FromMfrc522, LogDebug, "PICC type: %s", PICC_GetTypeName(piccType));
 #else
 	// UID
 	Serial.print(F("Card UID:"));
@@ -1590,8 +1592,6 @@ void MFRC522::PICC_DumpDetailsToSerial(Uid *uid	///< Pointer to Uid struct retur
 #endif
 } // End PICC_DumpDetailsToSerial()
 
-// HK TODO ..
-#if TODO
 /**
  * Dumps memory contents of a MIFARE Classic PICC.
  * On success the PICC is halted after dumping the data.
@@ -1623,7 +1623,11 @@ void MFRC522::PICC_DumpMifareClassicToSerial(	Uid *uid,			///< Pointer to Uid st
 	
 	// Dump sectors, highest address first.
 	if (no_of_sectors) {
+#ifdef __circle__
+		CLogger::Get()->Write(FromMfrc522, LogDebug, "Sector Block   0  1  2  3   4  5  6  7   8  9 10 11  12 13 14 15  AccessBits");
+#else
 		Serial.println(F("Sector Block   0  1  2  3   4  5  6  7   8  9 10 11  12 13 14 15  AccessBits"));
+#endif
 		for (int8_t i = no_of_sectors - 1; i >= 0; i--) {
 			PICC_DumpMifareClassicSectorToSerial(uid, key, i);
 		}
@@ -1673,7 +1677,95 @@ void MFRC522::PICC_DumpMifareClassicSectorToSerial(Uid *uid,			///< Pointer to U
 	else { // Illegal input, no MIFARE Classic PICC has more than 40 sectors.
 		return;
 	}
-		
+
+#ifdef __circle__
+	CString out, tmp;
+	// Dump blocks, highest address first.
+	byte byteCount;
+	byte buffer[18];
+	byte blockAddr;
+	isSectorTrailer = true;
+	invertedError = false;	// Avoid "unused variable" warning.
+	for (int8_t blockOffset = no_of_blocks - 1; blockOffset >= 0; blockOffset--) {
+		blockAddr = firstBlock + blockOffset;
+		// Sector number - only on first line
+		if (isSectorTrailer) {
+			tmp.Format("%4d   ", sector);
+		}
+		else {
+			tmp = "       ";
+		}
+		out = tmp;
+		// Block number
+		tmp.Format("%4d  ", blockAddr);
+		out.Append(tmp);
+		// Establish encrypted communications before reading the first block
+		if (isSectorTrailer) {
+			status = PCD_Authenticate(PICC_CMD_MF_AUTH_KEY_A, firstBlock, key, uid);
+			if (status != STATUS_OK) {
+				CLogger::Get()->Write(FromMfrc522, LogError, "PCD_Authenticate() failed: %s", GetStatusCodeName(status));
+				return;
+			}
+		}
+		// Read block
+		byteCount = sizeof(buffer);
+		status = MIFARE_Read(blockAddr, buffer, &byteCount);
+		if (status != STATUS_OK) {
+			CLogger::Get()->Write(FromMfrc522, LogError, "MIFARE_Read() failed: %s", GetStatusCodeName(status));
+			continue;
+		}
+		// Dump data
+		for (byte index = 0; index < 16; index++) {
+			if ((index % 4) == 3) {
+				tmp.Format(" %02X ", buffer[index]);
+			} else {
+				tmp.Format(" %02X", buffer[index]);
+			}
+			out.Append(tmp);
+		}
+		// Parse sector trailer data
+		if (isSectorTrailer) {
+			c1  = buffer[7] >> 4;
+			c2  = buffer[8] & 0xF;
+			c3  = buffer[8] >> 4;
+			c1_ = buffer[6] & 0xF;
+			c2_ = buffer[6] >> 4;
+			c3_ = buffer[7] & 0xF;
+			invertedError = (c1 != (~c1_ & 0xF)) || (c2 != (~c2_ & 0xF)) || (c3 != (~c3_ & 0xF));
+			g[0] = ((c1 & 1) << 2) | ((c2 & 1) << 1) | ((c3 & 1) << 0);
+			g[1] = ((c1 & 2) << 1) | ((c2 & 2) << 0) | ((c3 & 2) >> 1);
+			g[2] = ((c1 & 4) << 0) | ((c2 & 4) >> 1) | ((c3 & 4) >> 2);
+			g[3] = ((c1 & 8) >> 1) | ((c2 & 8) >> 2) | ((c3 & 8) >> 3);
+			isSectorTrailer = false;
+		}
+
+		// Which access group is this block in?
+		if (no_of_blocks == 4) {
+			group = blockOffset;
+			firstInGroup = true;
+		}
+		else {
+			group = blockOffset / 5;
+			firstInGroup = (group == 3) || (group != (blockOffset + 1) / 5);
+		}
+
+		if (firstInGroup) {
+			// Print access bits
+			tmp.Format(" [ %d %d %d ]", (g[group] >> 2) & 1, (g[group] >> 1) & 1, (g[group] >> 0) & 1);
+			out.Append(tmp);
+			if (invertedError) {
+				out.Append(" ** Inverted access bits did not match! **");
+			}
+		}
+
+		if (group != 3 && (g[group] == 1 || g[group] == 6)) { // Not a sector trailer, a value block
+			int32_t value = (int32_t(buffer[3])<<24) | (int32_t(buffer[2])<<16) | (int32_t(buffer[1])<<8) | int32_t(buffer[0]);
+			tmp.Format(" Value=0x%X Adr=0x%X", value, buffer[12]);
+			out.Append(tmp);
+		}
+		CLogger::Get()->Write(FromMfrc522, LogDebug, out);
+	}
+#else
 	// Dump blocks, highest address first.
 	byte byteCount;
 	byte buffer[18];
@@ -1778,7 +1870,7 @@ void MFRC522::PICC_DumpMifareClassicSectorToSerial(Uid *uid,			///< Pointer to U
 		}
 		Serial.println();
 	}
-	
+#endif
 	return;
 } // End PICC_DumpMifareClassicSectorToSerial()
 
@@ -1790,7 +1882,34 @@ void MFRC522::PICC_DumpMifareUltralightToSerial() {
 	byte byteCount;
 	byte buffer[18];
 	byte i;
-	
+
+#ifdef __circle__
+	CLogger::Get()->Write(FromMfrc522, LogDebug, "Page  0  1  2  3");
+	CString out, tmp;
+	// Try the mpages of the original Ultralight. Ultralight C has more pages.
+	for (byte page = 0; page < 16; page +=4) { // Read returns data for 4 pages at a time.
+		// Read pages
+		byteCount = sizeof(buffer);
+		status = MIFARE_Read(page, buffer, &byteCount);
+		if (status != STATUS_OK) {
+			CLogger::Get()->Write(FromMfrc522, LogError, "MIFARE_Read() failed: %s", GetStatusCodeName(status));
+			break;
+		}
+		out = "";
+		// Dump data
+		for (byte offset = 0; offset < 4; offset++) {
+			i = page + offset;
+			tmp.Format("%2d  ", i);
+			out.Append(tmp);
+			for (byte index = 0; index < 4; index++) {
+				i = 4 * offset + index;
+				tmp.Format(" %02X", buffer[i]);
+				out.Append(tmp);
+			}
+			CLogger::Get()->Write(FromMfrc522, LogDebug, out);
+		}
+	}
+#else
 	Serial.println(F("Page  0  1  2  3"));
 	// Try the mpages of the original Ultralight. Ultralight C has more pages.
 	for (byte page = 0; page < 16; page +=4) { // Read returns data for 4 pages at a time.
@@ -1822,6 +1941,7 @@ void MFRC522::PICC_DumpMifareUltralightToSerial() {
 			Serial.println();
 		}
 	}
+#endif
 } // End PICC_DumpMifareUltralightToSerial()
 
 /**
@@ -1842,7 +1962,7 @@ void MFRC522::MIFARE_SetAccessBits(	byte *accessBitBuffer,	///< Pointer to byte 
 	accessBitBuffer[2] =          c3 << 4 | c2;
 } // End MIFARE_SetAccessBits()
 
-
+#ifndef __circle__
 /**
  * Performs the "magic sequence" needed to get Chinese UID changeable
  * Mifare cards to allow writing to sector 0, where the card UID is stored.
@@ -2042,7 +2162,6 @@ bool MFRC522::MIFARE_UnbrickUidSector(bool logErrors) {
 	}
 	return true;
 }
-
 #endif // TODO
 
 /////////////////////////////////////////////////////////////////////////////////////

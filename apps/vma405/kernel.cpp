@@ -160,7 +160,7 @@ TShutdownMode CKernel::Run (void)
 	mfrc522.PCD_DumpVersionToSerial();	// Show details of PCD - MFRC522 Card Reader details
 
 
-    CLogger::Get ()->Write (FromKernel, LogDebug, "Scan PICC to see UID, SAK, type...");
+    CLogger::Get ()->Write (FromKernel, LogDebug, "Scan PICC to see UID, SAK, type, sector data...");
     // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
 	if (! mfrc522.PICC_IsNewCardPresent()) {
 		CLogger::Get ()->Write (FromKernel, LogError, "PICC_IsNewCardPresent() failed!");
@@ -172,10 +172,8 @@ TShutdownMode CKernel::Run (void)
 	}
     // debug_hexdump(mfrc522.uid.uidByte, mfrc522.uid.size, FromKernel);
 
-    // Dump UID, SAK and Type
-	mfrc522.PICC_DumpDetailsToSerial(&mfrc522.uid);
     // Dump debug info about the card; PICC_HaltA() is automatically called
-	//mfrc522.PICC_DumpToSerial(&(mfrc522.uid));
+	mfrc522.PICC_DumpToSerial(&(mfrc522.uid));
 
     CLogger::Get()->Write(FromKernel, LogDebug, "Rebooting..");
     return ShutdownReboot;

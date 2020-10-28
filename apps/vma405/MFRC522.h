@@ -212,7 +212,7 @@ public:
 		PICC_CMD_SEL_CL2		= 0x95,		// Anti collision/Select, Cascade Level 2
 		PICC_CMD_SEL_CL3		= 0x97,		// Anti collision/Select, Cascade Level 3
 		PICC_CMD_HLTA			= 0x50,		// HaLT command, Type A. Instructs an ACTIVE PICC to go to state HALT.
-		PICC_CMD_RATS           = 0xE0,     // Request command for Answer To Reset.
+		PICC_CMD_RATS			= 0xE0,		// Request command for Answer To Reset.
 		// The commands used for MIFARE Classic (from http://www.mouser.com/ds/2/302/MF1S503x-89574.pdf, Section 9)
 		// Use PCD_MFAuthent to authenticate access to a sector, then use these commands to read/write/modify the blocks on the sector.
 		// The read/write commands can also be used for MIFARE Ultralight.
@@ -378,12 +378,12 @@ public:
 	
 protected:
 #ifdef __circle__
-    // MFRC522 pin 24, NSS, active low
-    CGPIOPin m_nCS;
-    // MFRC522 pin 6, NRSTPD, active low
-    CGPIOPin m_RST;
-    // SPI0
-    CSPIMaster m_SPIMaster;
+	// MFRC522 pin 24, NSS, active low
+	CGPIOPin m_nCS;
+	// MFRC522 pin 6, NRSTPD, active low
+	CGPIOPin m_RST;
+	// SPI0
+	CSPIMaster m_SPIMaster;
 #else
 	byte _chipSelectPin;		// Arduino pin connected to MFRC522's SPI slave select input (Pin 24, NSS, active low)
 	byte _resetPowerDownPin;	// Arduino pin connected to MFRC522's reset and power down input (Pin 6, NRSTPD, active low)
