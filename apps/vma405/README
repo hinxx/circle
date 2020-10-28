@@ -1,0 +1,15 @@
+README
+
+This app communicates with the Velleman VMA405 RFID reader for Mifare tags.
+
+The pinout is as follows:
+
+Vcc		+3.3V
+SCLK	GPIO11
+MOSI	GPIO10
+MISO	GPIO9
+NSS		GPIO8
+IRQ		GPIO25
+RST		GPIO24
+
+MFRC522 Arduino Library was used for reference (https://github.com/miguelbalboa/rfid).
