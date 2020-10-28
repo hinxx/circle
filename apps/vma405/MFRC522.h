@@ -10,6 +10,19 @@
 #ifndef MFRC522_h
 #define MFRC522_h
 
+#ifdef __circle__
+// Enable integer limits
+#define __STDC_LIMIT_MACROS
+#include <stdint.h>
+
+#include <circle/gpiopin.h>
+#include <circle/spimaster.h>
+
+#define __FlashStringHelper char
+#define PROGMEM
+#define F
+typedef uint8_t byte;
+#else
 #include "require_cpp11.h"
 #include "deprecated.h"
 // Enable integer limits
@@ -17,6 +30,7 @@
 #include <stdint.h>
 #include <Arduino.h>
 #include <SPI.h>
+#endif
 
 #ifndef MFRC522_SPICLOCK
 #define MFRC522_SPICLOCK SPI_CLOCK_DIV4			// MFRC522 accept upto 10MHz
@@ -363,8 +377,17 @@ public:
 	virtual bool PICC_ReadCardSerial();
 	
 protected:
+#ifdef __circle__
+    // MFRC522 pin 24, NSS, active low
+    CGPIOPin m_nCS;
+    // MFRC522 pin 6, NRSTPD, active low
+    CGPIOPin m_RST;
+    // SPI0
+    CSPIMaster m_SPIMaster;
+#else
 	byte _chipSelectPin;		// Arduino pin connected to MFRC522's SPI slave select input (Pin 24, NSS, active low)
 	byte _resetPowerDownPin;	// Arduino pin connected to MFRC522's reset and power down input (Pin 6, NRSTPD, active low)
+#endif
 	StatusCode MIFARE_TwoStepHelper(byte command, byte blockAddr, int32_t data);
 };
 

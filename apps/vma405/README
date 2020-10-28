@@ -1,6 +1,7 @@
 README
 
-This app communicates with the Velleman VMA405 RFID reader for Mifare tags.
+This app communicates with the Velleman VMA405 RFID module for Mifare tags.
+VMA405 is based on NXP MFRC522 chip.
 
 The pinout is as follows:
 
