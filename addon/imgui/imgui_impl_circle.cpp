@@ -297,7 +297,7 @@ bool ImGui_ImplCircle_Init(void)
     // is registered to have both KeyPressedHandler and KeyStatusHandlerRaw executed!
     // one can deliver keys to UI and another to serial console
     pKeyboard->RegisterKeyPressedHandler(keyPressedHandler);
-    pKeyboard->RegisterKeyStatusHandlerRaw(keyStatusHandlerRaw);
+    pKeyboard->RegisterKeyStatusHandlerRaw(keyStatusHandlerRaw, TRUE);
 
     return true;
 }
