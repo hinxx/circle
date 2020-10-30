@@ -10,8 +10,10 @@ all:
 	$(MAKE) -C lib/net
 	$(MAKE) -C apps/tsc2046
 	$(MAKE) -C apps/ili9325d
+	$(MAKE) -C apps/ft6x06
 
 clean:
+	$(MAKE) -C apps/ft6x06 clean
 	$(MAKE) -C apps/ili9325d clean
 	$(MAKE) -C apps/tsc2046 clean
 	$(MAKE) -C lib/net clean

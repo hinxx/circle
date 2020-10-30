@@ -1,0 +1,15 @@
+README
+
+This app will obtain pressure and location of the touch from a FT6x06 IC.
+Data bytes are transferred via the I2C. Received touch coordinates (X, Y) are dumped
+to serial console. The values are normalized to display size.
+
+I2C master is used.
+
+The pinout is as follows:
+
+SDA	GPIO02
+SCL	GPIO03
+IRQ	GPIO25 (unused)
+
+FT6206 Touchscreen Arduino Library was used for reference (https://github.com/adafruit/Adafruit_FT6206_Library).
