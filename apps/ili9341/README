@@ -1,0 +1,17 @@
+README
+
+This sample will initialize the ILI9341 240x320 display in 4 wire SPI mode and display some colors.
+
+SPI0 master is used.
+
+The pinout is as follows:
+
+D/CX	GPIO25
+CSX		CE0# / GPIO8
+SDI		MOSI / GPIO10
+SDO		MISO / GPIO9
+SCL		SCLK / GPIO11
+
+The sample was tested against PiTFT 2.8" GLCD + touchscreen module.
+
+UTFT Arduino Library was used for reference (http://www.rinkydinkelectronics.com/library.php?id=51).

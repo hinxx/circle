@@ -13,14 +13,18 @@ all:
 #	$(MAKE) -C apps/ili9325d
 #	$(MAKE) -C apps/ft6x06
 	
-	$(MAKE) -C sample/90-pitft28
+#	$(MAKE) -C sample/90-pitft28
+
+	$(MAKE) -C apps/ili9341
 
 clean:
-	$(MAKE) -C sample/90-pitft28 clean
+	$(MAKE) -C apps/ili9341 clean
+	
+#	$(MAKE) -C sample/90-pitft28 clean
 
-	$(MAKE) -C apps/ft6x06 clean
-	$(MAKE) -C apps/ili9325d clean
-	$(MAKE) -C apps/tsc2046 clean
+#	$(MAKE) -C apps/ft6x06 clean
+#	$(MAKE) -C apps/ili9325d clean
+#	$(MAKE) -C apps/tsc2046 clean
 	
 	$(MAKE) -C lib/net clean
 	$(MAKE) -C lib/sched clean
