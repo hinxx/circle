@@ -32,7 +32,7 @@
 #include <circle/logger.h>
 #include <circle/types.h>
 #include <circle/i2cmaster.h>
-#include <circle/input/ft6x06.h>
+#include <circle/input/ft6206.h>
 
 enum TShutdownMode
 {

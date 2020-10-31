@@ -34,7 +34,7 @@
 #include <circle/i2cmaster.h>
 //#include "i2cechoclient.h"
 //#include <circle/input/touchscreen.h>
-#include "ft6x06.h"
+#include "ft6206.h"
 
 enum TShutdownMode
 {

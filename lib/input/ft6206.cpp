@@ -22,7 +22,7 @@
 #include <circle/devicenameservice.h>
 #include <circle/logger.h>
 
-#include <circle/input/ft6x06.h>
+#include <circle/input/ft6206.h>
 
 //#define FT62XX_ADDR 0x38           //!< I2C address
 //#define FT62XX_G_FT5201ID 0xA8     //!< FocalTech's panel ID
