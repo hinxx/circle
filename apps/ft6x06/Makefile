@@ -4,7 +4,7 @@
 
 CIRCLEHOME = ../..
 
-OBJS	= main.o kernel.o
+OBJS	= ft6x06.o main.o kernel.o
 
 LIBS	= $(CIRCLEHOME)/lib/libcircle.a
 

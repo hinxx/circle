@@ -33,6 +33,8 @@
 #include <circle/types.h>
 #include <circle/i2cmaster.h>
 //#include "i2cechoclient.h"
+//#include <circle/input/touchscreen.h>
+#include "ft6x06.h"
 
 enum TShutdownMode
 {
@@ -52,6 +54,10 @@ public:
 	TShutdownMode Run (void);
 
 private:
+	static void TouchScreenEventHandler (TTouchScreenEvent Event,
+					     unsigned nID, unsigned nPosX, unsigned nPosY);
+
+private:
 	// do not change this order
 	CMemorySystem		m_Memory;
 	CActLED			m_ActLED;
@@ -66,6 +72,10 @@ private:
 
 	CI2CMaster		m_I2CMaster;
 //	CI2CEchoClient		m_I2CEchoClient;
+
+    CFT6x06Device  m_FT6x06;
+
+    static CKernel *s_pThis;
 };
 
 #endif
