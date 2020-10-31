@@ -21,7 +21,7 @@
 CIRCLEHOME = ../..
 
 OBJS	= keyboardbehaviour.o keymap.o mousebehaviour.o mouse.o touchscreen.o \
-	  console.o keyboardbuffer.o linediscipline.o
+	  console.o keyboardbuffer.o linediscipline.o ft6x06.o
 
 libinput.a: $(OBJS)
 	@echo "  AR    $@"

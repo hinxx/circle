@@ -1,0 +1,17 @@
+README
+
+This sample will obtain pressure and location of the touch from a FT6206 IC.
+It was tested with Adafruit PiTFT 2.8" module using CST026-A IC (clone of FT6206?).
+Data bytes are transferred via the I2C. Received touch coordinates (X, Y) are dumped
+to serial console. The values are normalized to display size of 320 x 240 pixels.
+
+I2C master is used.
+
+The pinout is as follows:
+
+SDA	GPIO02
+SCL	GPIO03
+IRQ	GPIO25 (unused)
+
+FT6206 Touchscreen Arduino Library was used for reference
+(https://github.com/adafruit/Adafruit_FT6206_Library).

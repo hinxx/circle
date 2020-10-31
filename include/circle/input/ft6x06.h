@@ -19,8 +19,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-#ifndef FT6X06_H
-#define FT6X06_H
+#ifndef _circle_input_ft6x06_h
+#define _circle_input_ft6x06_h
 
 #include <circle/device.h>
 #include <circle/types.h>
@@ -41,26 +41,29 @@ typedef void TTouchScreenEventHandler (TTouchScreenEvent Event,
 class CFT6x06Device : public CDevice
 {
 public:
-    CFT6x06Device(CI2CMaster *pI2CMaster, u8 ucAddress = 0x36);
-    ~CFT6x06Device();
+	CFT6x06Device(CI2CMaster *pI2CMaster, u8 ucAddress, u8 ucThreshold = 128);
+	~CFT6x06Device();
 
-    boolean Initialize (void);
+	boolean Initialize (void);
 
-    void Update (void);		// call this about 60 times per second
+	void Update (void);		// call this about 60 times per second
 
 	void RegisterEventHandler (TTouchScreenEventHandler *pEventHandler);
 
 private:
-    CI2CMaster *m_pI2CMaster;
-    TTouchScreenEventHandler *m_pEventHandler;
+	boolean WriteRead(const void *pTxBuffer, unsigned nTxCount,
+			  void *pRxBuffer, unsigned nRxCount);
 
-    u8 m_ucAddress;
-    u8 m_ucVendorID;
-    u8 m_ucChipID;
-    unsigned m_nKnownIDs;
+private:
+	CI2CMaster *m_pI2CMaster;
+	TTouchScreenEventHandler *m_pEventHandler;
 
-    u16 m_nPosX[TOUCH_SCREEN_MAX_POINTS];
-    u16 m_nPosY[TOUCH_SCREEN_MAX_POINTS];
+	u8 m_ucAddress;
+	u8 m_ucThreshold;
+	unsigned m_nKnownIDs;
+
+	u16 m_nPosX[TOUCH_SCREEN_MAX_POINTS];
+	u16 m_nPosY[TOUCH_SCREEN_MAX_POINTS];
 };
 
-#endif // FT6X06_H
+#endif // _circle_input_ft6x06_h
