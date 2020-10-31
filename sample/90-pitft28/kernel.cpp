@@ -32,7 +32,7 @@ CKernel::CKernel (void)
 	m_Timer (&m_Interrupt),
 	m_Logger (m_Options.GetLogLevel (), &m_Timer),
 	m_I2CMaster (I2C_MASTER_DEVICE, I2C_FAST_MODE, I2C_MASTER_CONFIG),
-	m_FT6x06 (&m_I2CMaster, 0x38)
+	m_FT6206 (&m_I2CMaster)
 {
 	s_pThis = this;
 
@@ -66,7 +66,6 @@ boolean CKernel::Initialize (void)
 			pTarget = &m_Screen;
 		}
 
-		pTarget = &m_Serial;
 		bOK = m_Logger.Initialize (pTarget);
 	}
 
@@ -87,7 +86,7 @@ boolean CKernel::Initialize (void)
 
 	if (bOK)
 	{
-		bOK = m_FT6x06.Initialize ();
+		bOK = m_FT6206.Initialize ();
 	}
 
 	return bOK;
@@ -97,68 +96,8 @@ TShutdownMode CKernel::Run (void)
 {
 	m_Logger.Write (FromKernel, LogNotice, "Compile time: " __DATE__ " " __TIME__);
 
-#if 0
-	u8 cmd = 0xA8;
-	if (m_I2CMaster.Write(0x38, &cmd, sizeof(cmd)) != (int) sizeof(cmd)) {
-		CLogger::Get()->Write(FromKernel, LogPanic, "I2C write error (cmd)");
-	}
-	u8 data[16] = { 0xFF };
-	if (m_I2CMaster.Read(0x38, data, 1) != (int) 1) {
-		CLogger::Get()->Write(FromKernel, LogPanic, "I2C read error (data)");
-	}
-	CLogger::Get()->Write(FromKernel, LogNotice, "0x%02X = 0x%02X", cmd, data[0]);
-
-	cmd = 0xA3;
-	if (m_I2CMaster.Write(0x38, &cmd, sizeof(cmd)) != (int) sizeof(cmd)) {
-		CLogger::Get()->Write(FromKernel, LogPanic, "I2C write error (cmd)");
-	}
-	if (m_I2CMaster.Read(0x38, data, 1) != (int) 1) {
-		CLogger::Get()->Write(FromKernel, LogPanic, "I2C read error (data)");
-	}
-	CLogger::Get()->Write(FromKernel, LogNotice, "0x%02X = 0x%02X", cmd, data[0]);
-
-	while (1) {
-
-	cmd = 0;
-	if (m_I2CMaster.Write(0x38, &cmd, sizeof(cmd)) != (int) sizeof(cmd)) {
-		CLogger::Get()->Write(FromKernel, LogPanic, "I2C write error (cmd)");
-	}
-	if (m_I2CMaster.Read(0x38, data, 16) != (int) 16) {
-		CLogger::Get()->Write(FromKernel, LogPanic, "I2C read error (data)");
-	}
-//	for (int i = 0; i < 16; i++) {
-//		CLogger::Get()->Write(FromKernel, LogNotice, "0x%02X = 0x%02X", i, data[i]);
-//	}
-	CLogger::Get()->Write(FromKernel, LogNotice, "[2] 0x%02X [3] 0x%02X [3] 0x%02X [3] 0x%02X [3] 0x%02X [3] 0x%02X [3] 0x%02X",
-						  data[2], data[3], data[4], data[5], data[6], data[7], data[8]);
-
-	u8 touches = data[0x02];
-	if ((touches > 2) || (touches == 0)) {
-		touches = 0;
-	}
-
-	if (touches) {
-		u16 touchX[2], touchY[2], touchID[2];
-		for (u8 i = 0; i < 2; i++) {
-			touchX[i] = data[0x03 + i * 6] & 0x0F;
-			touchX[i] <<= 8;
-			touchX[i] |= data[0x04 + i * 6];
-			touchY[i] = data[0x05 + i * 6] & 0x0F;
-			touchY[i] <<= 8;
-			touchY[i] |= data[0x06 + i * 6];
-			touchID[i] = data[0x05 + i * 6] >> 4;
-		}
-
-		CLogger::Get ()->Write (FromKernel, LogNotice, "X %4d Y %4d Z %4d", touchX[0], touchY[0], touchID[0]);
-	}
-
-	m_Timer.MsDelay (1000);
-
-	}
-	return ShutdownReboot;
-#else
-	CFT6x06Device *pTouchScreen =
-		(CFT6x06Device *) m_DeviceNameService.GetDevice ("touch1", FALSE);
+	CFT6206Device *pTouchScreen =
+		(CFT6206Device *) m_DeviceNameService.GetDevice ("touch1", FALSE);
 	if (pTouchScreen == 0)
 	{
 		m_Logger.Write (FromKernel, LogPanic, "Touchscreen not found");
@@ -177,7 +116,6 @@ TShutdownMode CKernel::Run (void)
 	}
 
 	return ShutdownReboot;
-#endif
 }
 
 void CKernel::TouchScreenEventHandler (TTouchScreenEvent Event,

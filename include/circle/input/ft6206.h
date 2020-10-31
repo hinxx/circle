@@ -1,5 +1,5 @@
 //
-// ft6x06.h
+// ft6206.h
 //
 // Circle - A C++ bare metal environment for Raspberry Pi
 // Copyright (C) 2020  H. Kocevar <hinxx@protonmail.com>
@@ -19,8 +19,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-#ifndef _circle_input_ft6x06_h
-#define _circle_input_ft6x06_h
+#ifndef _circle_input_ft6206_h
+#define _circle_input_ft6206_h
 
 #include <circle/device.h>
 #include <circle/types.h>
@@ -38,11 +38,11 @@ enum TTouchScreenEvent
 typedef void TTouchScreenEventHandler (TTouchScreenEvent Event,
 				       unsigned nID, unsigned nPosX, unsigned nPosY);
 
-class CFT6x06Device : public CDevice
+class CFT6206Device : public CDevice
 {
 public:
-	CFT6x06Device(CI2CMaster *pI2CMaster, u8 ucAddress, u8 ucThreshold = 128);
-	~CFT6x06Device();
+	CFT6206Device (CI2CMaster *pI2CMaster, u8 ucAddress = 0x38, u8 ucThreshold = 128);
+	~CFT6206Device ();
 
 	boolean Initialize (void);
 
@@ -51,7 +51,7 @@ public:
 	void RegisterEventHandler (TTouchScreenEventHandler *pEventHandler);
 
 private:
-	boolean WriteRead(const void *pTxBuffer, unsigned nTxCount,
+	boolean WriteRead (const void *pTxBuffer, unsigned nTxCount,
 			  void *pRxBuffer, unsigned nRxCount);
 
 private:
@@ -66,4 +66,4 @@ private:
 	u16 m_nPosY[TOUCH_SCREEN_MAX_POINTS];
 };
 
-#endif // _circle_input_ft6x06_h
+#endif // _circle_input_ft6206_h

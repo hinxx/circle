@@ -70,7 +70,7 @@ private:
 
 	CI2CMaster		m_I2CMaster;
 
-	CFT6x06Device		m_FT6x06;
+	CFT6206Device		m_FT6206;
 
 	static CKernel		*s_pThis;
 };
